@@ -6,9 +6,15 @@
 
 Куда именно — задаётся при сборке через DIARY_REPORT_URL:
 
+  Discord    https://discord.com/api/webhooks/<id>/<token>   ← привычен где угодно
+  Slack      https://hooks.slack.com/services/<...>
+  ntfy       https://ntfy.sh/<длинная-случайная-тема>          ← ничего не заводить
   Telegram   https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<ID>
-  ntfy       https://ntfy.sh/<своя-случайная-тема>
   свой хук   любой URL, принимающий POST
+
+Выбирая канал, помни: адрес виден тому, кто вскроет сборку. В Северной Америке
+ссылка на Telegram у многих вызывает подозрение сама по себе — Discord, Slack
+или ntfy не вызывают ни у кого.
 
 ⚠️ Адрес виден любому, кто вскроет сборку. Поэтому бот заводится ОТДЕЛЬНЫЙ, не
 рабочий: если адрес утечёт, худшее — спам в один чат, и канал меняется заменой
@@ -49,7 +55,13 @@ def send(report_text: str, complaint: str = "", who: str = "") -> dict:
             f"{report_text}")[:MAX]
 
     try:
-        if "api.telegram.org" in url:
+        if "discord.com/api/webhooks" in url or "discordapp.com/api/webhooks" in url:
+            # Discord режет сообщения на 2000 символов и не любит пустые поля
+            r = httpx.post(url, timeout=30,
+                           json={"content": f"```\n{body[:1900]}\n```"})
+        elif "hooks.slack.com" in url:
+            r = httpx.post(url, timeout=30, json={"text": f"```{body[:3500]}```"})
+        elif "api.telegram.org" in url:
             r = httpx.post(url, timeout=30,
                            data={"text": body, "disable_web_page_preview": "true"})
         elif "ntfy.sh" in url:
