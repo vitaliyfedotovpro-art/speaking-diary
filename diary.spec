@@ -30,5 +30,5 @@ exe = EXE(
     console=False,           # окна консоли быть не должно: это личная вещь, не утилита
     onefile=True,
     disable_windowed_traceback=False,
-    icon=None,
+    icon="diary/lib/diary.ico",
 )
