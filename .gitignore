@@ -1,0 +1,33 @@
+# Дневник пользователя — личные данные, в репозиторий не попадают никогда
+.diary/
+*.hsam.json
+journal.jsonl
+links.jsonl
+attachments/
+last_voice.wav
+
+# Ключи
+key
+groq_key
+.env
+*.key
+
+# Сборка
+build/
+dist/
+*.spec.bak
+__pycache__/
+*.pyc
+
+# Библиотека движка собирается в CI под нужную платформу
+diary/lib/*.dylib
+diary/lib/*.so
+diary/lib/*.dll
+
+# Локальное
+.DS_Store
+*.log
+
+# Заметки по дизайну и задания содержат сведения о людях, для которых это делалось.
+# Для сборки они не нужны и в репозиторий не идут — лежат локально.
+docs/

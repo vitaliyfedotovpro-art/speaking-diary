@@ -1,0 +1,58 @@
+name: build
+
+# Сборка под Windows идёт ЗДЕСЬ, а не на маке: ни PyInstaller, ни Rust не
+# кросс-компилируют .exe и .dll с macOS. Артефакт скачивается со страницы запуска.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Забрать движок памяти
+        uses: actions/checkout@v4
+        with:
+          repository: vitaliyfedotovpro-art/astrum-hsam-embedded
+          path: hsam
+
+      - name: Собрать HSAM как DLL
+        working-directory: hsam
+        run: cargo rustc --release --crate-type cdylib
+
+      - name: Положить DLL рядом с кодом
+        shell: bash
+        run: |
+          mkdir -p diary/lib
+          cp hsam/target/release/astrum_memory.dll diary/lib/
+          ls -la diary/lib/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Сборка
+        run: pyinstaller --clean --noconfirm diary.spec
+
+      - name: Проверить, что файл собрался
+        shell: bash
+        run: |
+          test -f dist/Diary.exe || (echo "Diary.exe не собран" && exit 1)
+          ls -la dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Diary-windows
+          path: dist/Diary.exe
+          retention-days: 30
