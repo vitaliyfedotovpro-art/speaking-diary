@@ -20,6 +20,7 @@ from . import backup as _backup
 from . import files as _files
 from . import diagnose as _diag
 from . import callhome as _callhome
+from . import support as _support
 from .memory import Memory
 from .journal import Journal
 from .links import Links, QUESTION_PROMPT
@@ -90,6 +91,7 @@ class Handler(BaseHTTPRequestHandler):
     mem: Memory = None                      # выставляется при старте
     jr: Journal = None
     lk: Links = None
+    sup = None
     voice_port: int = 8792
 
     def log_message(self, *a):              # молчим: свой лог печатаем сами
@@ -115,6 +117,8 @@ class Handler(BaseHTTPRequestHandler):
             cur = os.environ.get("DIARY_BACKUP_DIR", "")
             return self._json({"targets": _backup.targets(), "current": cur,
                                "last": _backup.last(cur) if cur else None})
+        if self.path.startswith("/api/support/state"):
+            return self._json(self.sup.state())
         if self.path.startswith("/api/diagnose"):
             d = _diag.collect(HOME, self.mem, self.jr)
             if "text" in self.path:
@@ -320,6 +324,15 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True, "text": _diag.as_text(d),
                                "saved": str(HOME / "diagnostics.txt")})
 
+        if self.path == "/api/support/open":
+            return self._json(self.sup.open())
+        if self.path == "/api/support/close":
+            return self._json(self.sup.close())
+        if self.path == "/api/support/run":
+            # проверка из списка — по имени. Произвольных команд здесь нет.
+            name = (body.get("check") or "").strip()
+            return self._json({"check": name, "output": self.sup.run(name)})
+
         if self.path == "/api/report/send":
             """Отчёт уходит тому, кто ставил дневник. Человек перед отправкой
             видит ровно тот текст, который улетит — без сюрпризов."""
@@ -484,6 +497,7 @@ def serve(port: int = 8791, open_browser: bool = True, voice_port: int = 8792) -
     Handler.mem = Memory(HOME / "diary.hsam.json")
     Handler.jr = Journal(HOME / "journal.jsonl")
     Handler.lk = Links(HOME / "links.jsonl")
+    Handler.sup = _support.Support(HOME, Handler.mem, Handler.jr)
     # куда писать копии — помним между запусками
     if not os.environ.get("DIARY_BACKUP_DIR") and (HOME / "backup_dir").exists():
         os.environ["DIARY_BACKUP_DIR"] = (HOME / "backup_dir").read_text(encoding="utf-8").strip()

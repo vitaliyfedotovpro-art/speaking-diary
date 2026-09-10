@@ -3403,6 +3403,22 @@ document.addEventListener('DOMContentLoaded', () => {
               background:color-mix(in srgb,currentColor 7%,transparent)"></pre>
           </div>
 
+          <div class="settings-section" id="sectionSupport">
+            <h3 class="settings-section-title">Support session</h3>
+            <p class="settings-hint">If someone is helping you fix this, turn on a session and
+              read them the code. They can run health checks on this app for one hour — never
+              your diary, your conversations or your keys. You can end it any time, and you see
+              every check they run.</p>
+            <div class="api-key-input-row" style="margin-top:.6em">
+              <button type="button" class="btn-secondary" id="supToggle">Allow support session</button>
+              <span id="supCode" style="font:600 1.3rem ui-monospace,monospace;letter-spacing:.15em;margin-left:.7em"></span>
+              <span id="supTimer" class="settings-hint" style="margin-left:.5em"></span>
+            </div>
+            <pre id="supLog" style="display:none;max-height:24vh;overflow:auto;font-size:.72rem;
+              line-height:1.5;white-space:pre-wrap;margin-top:.7em;padding:.7em;border-radius:8px;
+              background:color-mix(in srgb,currentColor 7%,transparent)"></pre>
+          </div>
+
           <div class="settings-section" id="sectionBackup">
             <h3 class="settings-section-title">Backup</h3>
             <p class="settings-hint">A copy of your memory and conversations. Not encrypted —
@@ -6929,6 +6945,61 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
         st.textContent = 'could not send: ' + e.message;
       } finally { send.disabled = false; }
     });
+  });
+})();
+</script>
+
+<script>
+/* ── Сессия поддержки (по кнопке человека) ───────────────────────────────────
+   Открывается только тут и гаснет через час. Помогающий может запускать проверки
+   работоспособности — не дневник. Каждая проверка видна человеку в логе ниже. */
+(function () {
+  let timer = null;
+
+  function paint(st) {
+    const btn = document.getElementById('supToggle');
+    const code = document.getElementById('supCode');
+    const tm = document.getElementById('supTimer');
+    const log = document.getElementById('supLog');
+    if (!btn) return;
+    if (!st.configured) {
+      // канал в сборке не задан — прятать нечего показывать
+      document.getElementById('sectionSupport').style.display = 'none';
+      return;
+    }
+    if (st.open) {
+      btn.textContent = 'End session now';
+      code.textContent = st.code;
+      const m = Math.floor(st.left_s / 60), s2 = st.left_s % 60;
+      tm.textContent = `open · ${m}:${String(s2).padStart(2, '0')} left`;
+      if (st.log && st.log.length) {
+        log.style.display = 'block';
+        log.textContent = st.log.join('\n');
+        log.scrollTop = log.scrollHeight;
+      }
+    } else {
+      btn.textContent = 'Allow support session';
+      code.textContent = '';
+      tm.textContent = '';
+      log.style.display = 'none';
+    }
+  }
+
+  async function refresh() {
+    try { paint(await fetch('/api/support/state').then(r => r.json())); } catch (e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('supToggle');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const st = await fetch('/api/support/state').then(r => r.json());
+      const ep = st.open ? '/api/support/close' : '/api/support/open';
+      await fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      refresh();
+    });
+    refresh();
+    timer = setInterval(refresh, 3000);   // тикающий таймер и живой лог
   });
 })();
 </script>
