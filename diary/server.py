@@ -18,6 +18,7 @@ from . import tts as _tts
 from . import stt as _stt
 from . import backup as _backup
 from . import files as _files
+from . import diagnose as _diag
 from .memory import Memory
 from .journal import Journal
 from .links import Links, QUESTION_PROMPT
@@ -113,6 +114,18 @@ class Handler(BaseHTTPRequestHandler):
             cur = os.environ.get("DIARY_BACKUP_DIR", "")
             return self._json({"targets": _backup.targets(), "current": cur,
                                "last": _backup.last(cur) if cur else None})
+        if self.path.startswith("/api/diagnose"):
+            d = _diag.collect(HOME, self.mem, self.jr)
+            if "text" in self.path:
+                body = _diag.as_text(d).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Disposition",
+                                 'attachment; filename="diary-diagnostics.txt"')
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                return self.wfile.write(body)
+            return self._json(d)
         if self.path.startswith("/api/quiz"):
             # Вопрос о неочевидной связи. Не чаще раза в несколько ходов и только
             # когда есть подходящая пара — иначе опросник превращается в допрос.
@@ -292,6 +305,18 @@ class Handler(BaseHTTPRequestHandler):
 
         if self.path == "/api/backup/restore":
             return self._json(_backup.restore(body.get("file") or "", HOME))
+
+        if self.path == "/api/report":
+            """Полный отчёт: серверная часть плюс то, что видит браузер —
+            микрофон, устройства, ошибки JS. Сервер про них ничего не знает."""
+            d = _diag.collect(HOME, self.mem, self.jr, {"client": body.get("client") or {}})
+            try:
+                f = HOME / "diagnostics.txt"
+                f.write_text(_diag.as_text(d), encoding="utf-8")
+            except Exception:
+                pass
+            return self._json({"ok": True, "text": _diag.as_text(d),
+                               "saved": str(HOME / "diagnostics.txt")})
 
         if self.path == "/api/keys":
             """Ключи, введённые пользователем. Держим только в памяти процесса и
