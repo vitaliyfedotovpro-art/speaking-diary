@@ -3388,7 +3388,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3 class="settings-section-title">Something not working?</h3>
             <p class="settings-hint">This makes a report about what works and what does not —
               no diary content, no conversations, no keys. Send it to whoever set this up for you.</p>
+            <label class="ob-field" style="margin-top:.4em">
+              <span>What went wrong? <em>— a line or two is enough</em></span>
+              <input id="diagComplaint" type="text" placeholder="the microphone button does nothing" autocomplete="off">
+            </label>
             <div class="api-key-input-row" style="margin-top:.6em">
+              <button type="button" class="btn-secondary" id="diagSendBtn" style="display:none">Send to support</button>
               <button type="button" class="btn-secondary" id="diagBtn">Create report</button>
               <button type="button" class="btn-secondary" id="diagCopyBtn" style="display:none">Copy</button>
               <span id="diagStatus" class="settings-hint" style="margin-left:.6em"></span>
@@ -6873,6 +6878,56 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
     copy.addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(out.textContent); st.textContent = 'copied'; }
       catch (e) { st.textContent = 'select the text and copy it manually'; }
+    });
+  });
+})();
+</script>
+
+<script>
+/* Кнопка «постучаться». Появляется, только если в сборке задан канал доставки —
+   иначе обещали бы то, чего нет. Человек перед отправкой видит ровно тот текст,
+   который улетит. */
+(function () {
+  document.addEventListener('DOMContentLoaded', async () => {
+    const send = document.getElementById('diagSendBtn');
+    const out = document.getElementById('diagOut');
+    const st = document.getElementById('diagStatus');
+    const what = document.getElementById('diagComplaint');
+    if (!send) return;
+
+    let has = false;
+    try { has = (await fetch('/api/capabilities').then(r => r.json())).report_channel; } catch (e) {}
+    if (!has) return;                       // канала нет — кнопки тоже
+    send.style.display = 'inline-block';
+
+    send.addEventListener('click', async () => {
+      send.disabled = true;
+      st.textContent = 'sending…';
+      try {
+        const client = {
+          browser: navigator.userAgent.slice(0, 120),
+          microphone_api: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+        };
+        try {
+          const p = await navigator.permissions.query({ name: 'microphone' });
+          client.microphone_permission = p.state;
+        } catch (e) {}
+        const r = await fetch('/api/report/send', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            complaint: (what && what.value || '').trim(),
+            who: (localStorage.getItem('diary-owner') || ''),
+            client
+          })
+        });
+        const d = await r.json();
+        if (out) { out.textContent = d.text || ''; out.style.display = 'block'; }
+        st.textContent = d.ok
+          ? 'sent — they will see what is on your screen, nothing else'
+          : 'could not send: ' + (d.why || 'unknown') + ' — copy the text below instead';
+      } catch (e) {
+        st.textContent = 'could not send: ' + e.message;
+      } finally { send.disabled = false; }
     });
   });
 })();

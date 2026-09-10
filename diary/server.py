@@ -19,6 +19,7 @@ from . import stt as _stt
 from . import backup as _backup
 from . import files as _files
 from . import diagnose as _diag
+from . import callhome as _callhome
 from .memory import Memory
 from .journal import Journal
 from .links import Links, QUESTION_PROMPT
@@ -189,7 +190,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.startswith("/api/capabilities"):
             # Live API нет на бесплатном тарифе. Проверяем не по документации,
             # а попыткой соединения — тариф виден только так.
-            return self._json({"stt": _stt.available(),
+            return self._json({"report_channel": _callhome.configured(),
+                               "stt": _stt.available(),
                                "realtime": _realtime_available(),
                                "why": "" if _realtime_available()
                                       else "Realtime voice needs a paid Gemini plan. "
@@ -317,6 +319,14 @@ class Handler(BaseHTTPRequestHandler):
                 pass
             return self._json({"ok": True, "text": _diag.as_text(d),
                                "saved": str(HOME / "diagnostics.txt")})
+
+        if self.path == "/api/report/send":
+            """Отчёт уходит тому, кто ставил дневник. Человек перед отправкой
+            видит ровно тот текст, который улетит — без сюрпризов."""
+            d = _diag.collect(HOME, self.mem, self.jr, {"client": body.get("client") or {}})
+            text = _diag.as_text(d)
+            r = _callhome.send(text, body.get("complaint", ""), body.get("who", ""))
+            return self._json({**r, "text": text})
 
         if self.path == "/api/keys":
             """Ключи, введённые пользователем. Держим только в памяти процесса и

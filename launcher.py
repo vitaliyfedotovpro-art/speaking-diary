@@ -25,6 +25,11 @@ def main() -> None:
             if f.exists():
                 os.environ[var] = f.read_text(encoding="utf-8").strip()
 
+    # Куда уходит кнопка «постучаться». Задаётся при сборке: отдельный бот или
+    # тема ntfy, не рабочие. Адрес виден любому, кто вскроет файл, — поэтому
+    # канал должен быть одноразовым и легко заменяемым.
+    os.environ.setdefault("DIARY_REPORT_URL", "")   # ← вписать перед сборкой
+
     from diary.server import serve
     port = int(os.environ.get("DIARY_PORT", "8791"))
     try:
