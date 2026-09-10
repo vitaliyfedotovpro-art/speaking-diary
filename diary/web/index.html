@@ -2704,35 +2704,46 @@
   </style>
 
 <style>
-.ob-screen{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;
-  justify-content:center;padding:4vh 4vw;overflow:auto;
-  background:var(--bg-deep,#14100c);color:var(--text-primary,#e8dcc4)}
+.ob-screen{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-start;
+  justify-content:center;padding:6vh 5vw;overflow:auto;
+  background:#17120d;color:#efe4cf;font:15px/1.6 system-ui,-apple-system,sans-serif}
 .ob-screen[hidden]{display:none}
-.ob-inner{width:min(760px,100%)}
-.ob-title{font-size:1.7rem;font-weight:500;letter-spacing:.01em;margin:0 0 .3em}
-.ob-lead{opacity:.72;line-height:1.55;margin:0 0 1.6em;max-width:58ch}
-.ob-stream{min-height:120px;max-height:38vh;overflow:auto;display:flex;
-  flex-direction:column;gap:.6em;margin-bottom:1em}
-.ob-msg{padding:.7em .95em;border-radius:10px;line-height:1.5;max-width:52ch}
-.ob-msg.them{background:color-mix(in srgb,currentColor 7%,transparent);
-  border:1px solid color-mix(in srgb,currentColor 14%,transparent)}
-.ob-msg.you{align-self:flex-end;background:color-mix(in srgb,currentColor 12%,transparent)}
-.ob-ask{display:flex;gap:.5em;margin-bottom:1.8em}
-.ob-input{flex:1;background:transparent;border:none;border-bottom:1px solid
-  color-mix(in srgb,currentColor 28%,transparent);color:inherit;padding:.5em .2em;font:inherit}
-.ob-input:focus{outline:none;border-bottom-color:var(--accent-gold,#d4af37)}
-.ob-keys{border-top:1px solid color-mix(in srgb,currentColor 14%,transparent);padding-top:1.4em}
-.ob-field{display:block;margin-bottom:1em}
-.ob-field span{display:block;font-size:.82rem;opacity:.78;margin-bottom:.35em}
-.ob-field em{opacity:.6;font-style:normal}
-.ob-field input{width:100%;background:transparent;color:inherit;font:inherit;
-  border:1px solid color-mix(in srgb,currentColor 22%,transparent);
-  border-radius:8px;padding:.55em .7em}
-.ob-field a{font-size:.78rem;opacity:.6;display:inline-block;margin-top:.3em;color:inherit}
-.ob-warn{font-size:.8rem;line-height:1.5;opacity:.72;max-width:60ch;
-  border-left:2px solid var(--accent-gold,#d4af37);padding-left:.9em;margin:1.2em 0}
-.ob-actions{display:flex;align-items:center;gap:.7em;flex-wrap:wrap}
-@media (prefers-reduced-motion:reduce){.ob-screen *{transition:none!important}}
+.ob-inner{width:min(680px,100%)}
+.ob-title{font-size:1.9rem;font-weight:600;letter-spacing:.01em;margin:0 0 .4em;color:#f6ecd7}
+.ob-lead{color:#c9bca2;line-height:1.6;margin:0 0 1.8em;max-width:56ch}
+.ob-stream{min-height:60px;max-height:34vh;overflow:auto;display:flex;
+  flex-direction:column;gap:.7em;margin-bottom:1.2em;padding-right:.3em}
+.ob-msg{padding:.85em 1.1em;border-radius:12px;line-height:1.55;max-width:52ch;color:#efe4cf}
+.ob-msg.them{background:#241d14;border:1px solid #3a2f1f}
+.ob-msg.you{align-self:flex-end;background:#3a2f1f;color:#f6ecd7}
+.ob-ask{display:flex;gap:.6em;margin-bottom:2em}
+.ob-input{flex:1;background:#0f0c08;border:1px solid #3a2f1f;border-radius:9px;
+  color:#efe4cf;padding:.7em .9em;font:inherit}
+.ob-input::placeholder{color:#8a7d68}
+.ob-input:focus{outline:none;border-color:#d4af37}
+.ob-ask button{background:#d4af37;color:#17120d;border:none;border-radius:9px;
+  padding:.7em 1.3em;font:600 15px system-ui;cursor:pointer}
+.ob-keys{border-top:1px solid #3a2f1f;padding-top:1.6em}
+.ob-field{display:block;margin-bottom:1.3em}
+.ob-field span{display:block;font-size:.9rem;font-weight:600;color:#efe4cf;margin-bottom:.45em}
+.ob-field em{color:#a89a80;font-style:normal;font-weight:400}
+.ob-field input{width:100%;box-sizing:border-box;background:#0f0c08;color:#efe4cf;font:inherit;
+  border:1px solid #3a2f1f;border-radius:9px;padding:.7em .9em}
+.ob-field input::placeholder{color:#8a7d68}
+.ob-field input:focus{outline:none;border-color:#d4af37}
+.ob-field a{font-size:.85rem;color:#d4af37;display:inline-block;margin-top:.4em;text-decoration:none}
+.ob-field a:hover{text-decoration:underline}
+.ob-warn{font-size:.88rem;line-height:1.6;color:#c9bca2;max-width:58ch;
+  border-left:3px solid #d4af37;padding:.2em 0 .2em 1em;margin:1.4em 0;background:#1e1810;
+  border-radius:0 8px 8px 0;padding:.9em 1em .9em 1em}
+.ob-actions{display:flex;align-items:center;gap:.8em;flex-wrap:wrap;margin-top:.5em}
+.ob-actions button{background:#d4af37;color:#17120d;border:none;border-radius:9px;
+  padding:.75em 1.5em;font:600 15px system-ui;cursor:pointer}
+.ob-actions button:hover{background:#e0bd4c}
+#obStatus{font-size:.88rem;color:#c9bca2}
+.ob-stream::-webkit-scrollbar{width:8px}
+.ob-stream::-webkit-scrollbar-thumb{background:#3a2f1f;border-radius:4px}
+@media (prefers-reduced-motion:reduce){.ob-screen *{transition:none!important}}}
 </style>
 
 <script>
@@ -6719,7 +6730,7 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
   const FALLBACK = [
     "1 · Open aistudio.google.com/apikey and sign in with a Google account.",
     "2 · Click “Get API key”, then “Create API key”. Any project works.",
-    "3 · Copy the whole key (it starts with AIza) and paste it into the Gemini field below.",
+    "3 · Copy the whole key (it starts with A-I-z-a) and paste it into the Gemini field below.",
     "4 · Optional: console.groq.com/keys → “Create API Key” for speech-to-text. Free, no card.",
     "Note: on Gemini’s free tier Google uses your conversations to improve its models, and live voice is unavailable. A card in Google Cloud turns both off."
   ];
