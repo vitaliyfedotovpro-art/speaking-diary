@@ -3,6 +3,22 @@
 A personal diary that listens, remembers and talks back. Runs entirely on your own
 machine: your entries never leave it except as requests to the model you choose.
 
+## Install
+
+**Windows.** Download `Diary.exe` and double-click it. That's the whole install —
+nothing to set up, no dependencies. The diary opens in your browser; it runs only on
+your own machine and never listens to the network.
+
+The first time you run it, Windows shows a blue **"Windows protected your PC"** screen.
+This is because the file isn't signed by a big company, not because anything is wrong.
+Click **More info**, then **Run anyway**. It only ever asks once.
+
+Windows may also ask whether the app can use your network — allow it. The diary talks
+to your machine only (`127.0.0.1`); the prompt is a standard one for anything that opens
+a local page.
+
+**macOS / Linux.** Build from source (below), or run `Diary` from a release.
+
 ## What it is
 
 Two ways in, one memory behind both:
@@ -46,8 +62,16 @@ pip install -r requirements.txt pyinstaller
 pyinstaller --clean --noconfirm diary.spec
 ```
 
-Windows builds run in CI (`.github/workflows/build.yml`) — PyInstaller does not
-cross-compile, and neither does the Rust engine.
+**Windows** builds run in GitHub Actions, because neither PyInstaller nor the Rust
+engine cross-compiles from macOS. Push a tag and the `.exe` appears as an artifact:
+
+```
+git tag v0.1.0 && git push origin main --tags
+```
+
+The workflow (`.github/workflows/build.yml`) checks out the HSAM engine, compiles it
+to `astrum_memory.dll`, and packs everything into a single `Diary.exe`. Download it from
+the run's Artifacts on the Actions tab.
 
 ## Running from source
 
