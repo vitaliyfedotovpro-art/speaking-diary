@@ -7,6 +7,10 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+# Право создавать релиз и прикреплять к нему файл
+permissions:
+  contents: write
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -56,3 +60,22 @@ jobs:
           name: Diary-windows
           path: dist/Diary.exe
           retention-days: 30
+
+      # Релиз с постоянной ссылкой на скачивание — только когда пушится тег,
+      # чтобы ручные запуски не плодили пустых релизов.
+      - name: Опубликовать релиз
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Diary.exe
+          name: Diary ${{ github.ref_name }}
+          body: |
+            Personal speaking diary — Windows build.
+
+            **Download `Diary.exe` below and double-click it.** Nothing to install.
+
+            On first launch Windows shows a blue "Windows protected your PC" screen —
+            the file isn't signed by a big company, that's all. Click **More info** →
+            **Run anyway**. It only asks once.
+
+            The diary runs on your own machine and never listens to the network.
