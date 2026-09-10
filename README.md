@@ -82,3 +82,10 @@ python -m diary.server
 
 Data lives in `~/.diary`: memory snapshot, conversation journal, attachments, keys.
 Back it up from the settings panel — to an external drive or a cloud folder.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).
+
+The memory engine it links, [Astrum HSAM](https://github.com/vitaliyfedotovpro-art/astrum-hsam-embedded),
+is Apache-2.0 as well.
