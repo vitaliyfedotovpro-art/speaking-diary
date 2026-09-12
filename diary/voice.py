@@ -13,30 +13,36 @@ import asyncio
 import base64
 import json
 import os
+import threading
 
 import websockets
 from websockets.asyncio.server import serve as ws_serve
 
-from .memory import Memory, format_for_prompt
-from .hsam import SRC_USER
+from . import chat as _chat
+from .memory import Memory, format_for_prompt, source_of
+from .hsam import SRC_USER, SRC_SELF
 
 MODEL = os.environ.get("DIARY_LIVE_MODEL", "gemini-2.5-flash-native-audio-latest")
 VOICE = os.environ.get("DIARY_LIVE_VOICE", "Kore")
 LIVE_URL = ("wss://generativelanguage.googleapis.com/ws/"
             "google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent")
 
-SYSTEM = """You are a personal speaking diary — not an assistant. You remember one person's
-life and talk with them about it, out loud.
+# Характер у голоса и у текста ОДИН — берётся из chat.SYSTEM. Раньше здесь жил
+# свой куцый промпт («personal speaking diary»), и живой режим вёл себя иначе:
+# правка про свободу тем доехала до текста и не доехала до голоса, отчего вслух
+# собеседница возвращала человека «к его жизни» вместо разговора о чём угодно.
+SPOKEN = """
 
-Speak the way people speak: short sentences, no lists, no bullet points, no markdown.
-Never open with praise and never close with a compliment.
+ЭТО РАЗГОВОР ВСЛУХ. Короткие фразы, как в живой речи: без списков, без разметки,
+без заголовков и без длинных абзацев — тебя слушают, а не читают. Можно переспросить,
+хмыкнуть, оборвать себя на полуслове.
 
-You have two tools. Use recall_diary whenever the person refers to anything from their life —
-before answering, not after. Use remember_fact when they tell you something worth keeping
-a month from now: events, decisions, people, plans. Do not save your own opinions.
+ИНСТРУМЕНТЫ. recall_diary — когда нужна подробность из прошлого, которой нет в
+выдержке ниже: спрашивай ДО ответа, а не после. remember_fact — когда человек сказал
+о своей жизни то, что будет важно через месяц: события, решения, люди, планы. Свои
+мнения и советы не сохраняй никогда."""
 
-If the diary has nothing on it, say so plainly and ask. Not knowing is where the
-conversation starts, not where it stops. Never invent names, dates or numbers."""
+SYSTEM = _chat.SYSTEM + SPOKEN
 
 TOOLS = [{"functionDeclarations": [
     {"name": "recall_diary",
@@ -54,14 +60,57 @@ TOOLS = [{"functionDeclarations": [
 ]}]
 
 
-def _setup_msg(voice: str | None = None, model: str | None = None) -> dict:
+def _digest(mem: Memory, limit: int = 60) -> str:
+    """Что дневник знает о человеке — ДО первого слова.
+
+    Текстовый режим кладёт найденное в промпт на каждом ходу, живой не клал ничего:
+    модель узнавала о человеке, только если сама догадается позвать recall_diary.
+    Отсюда и «собеседник без контекста». Поиском тут не возьмёшь — запроса ещё нет,
+    разговор не начался, — поэтому берём снимок памяти и самое важное из него.
+    """
+    try:
+        nodes, _ = mem.nodes_with_vectors()
+    except Exception:
+        return ""
+    # 🔴 Карантин самоописаний движок держит на ПОИСКЕ, а здесь мы читаем снимок
+    # напрямую, в обход поиска — значит отсекаем сами. В снимке провенанс лежит
+    # строкой, и сравнение с числом молча не отсекало бы ничего.
+    nodes = [n for n in nodes if source_of(n) != SRC_SELF]
+    nodes.sort(key=lambda n: float(n.get("importance") or 0), reverse=True)
+    return format_for_prompt(nodes[:limit])
+
+
+def _recent(jr, n: int = 10) -> str:
+    """Хвост последнего разговора: человек продолжает мысль, а не начинает с нуля."""
+    try:
+        days = jr.days() if jr is not None else []
+    except Exception:
+        return ""
+    for day in days:                       # дни уже отсортированы от новых к старым
+        for s in reversed(day.get("sessions") or []):
+            turns = (s.get("turns") or [])[-n:]
+            if not turns:
+                continue
+            body = "\n".join(f"{'Он' if t.get('who') == 'you' else 'Ты'}: {(t.get('text') or '')[:300]}"
+                             for t in turns)
+            return (f"\n\nПРОШЛЫЙ РАЗГОВОР ({day.get('date')}, «{s.get('title') or 'без названия'}»):"
+                    f"\n{body}")
+    return ""
+
+
+def _context(mem: Memory, jr=None) -> str:
+    return _digest(mem) + _recent(jr)
+
+
+def _setup_msg(voice: str | None = None, model: str | None = None,
+               context: str = "") -> dict:
     return {"setup": {
         "model": f"models/{model or MODEL}",
         "generationConfig": {
             "responseModalities": ["AUDIO"],
             "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice or VOICE}}},
         },
-        "systemInstruction": {"parts": [{"text": SYSTEM}]},
+        "systemInstruction": {"parts": [{"text": SYSTEM + context}]},
         "tools": TOOLS,
         "inputAudioTranscription": {},
         "outputAudioTranscription": {},
@@ -110,8 +159,10 @@ async def bridge(client, mem: Memory, jr=None) -> None:
                     voice, model = cfg.get("voice"), cfg.get("model")
         except (asyncio.TimeoutError, Exception):
             pass
-        await up.send(json.dumps(_setup_msg(voice, model)))
-        print(f"[voice] сеанс: голос {voice or VOICE}, модель {model or MODEL}")
+        ctx = await asyncio.to_thread(_context, mem, jr)
+        await up.send(json.dumps(_setup_msg(voice, model, ctx)))
+        print(f"[voice] сеанс: голос {voice or VOICE}, модель {model or MODEL}, "
+              f"контекст {len(ctx)} знаков")
 
         async def to_gemini():
             async for raw in client:
@@ -128,15 +179,41 @@ async def bridge(client, mem: Memory, jr=None) -> None:
 
         said: dict[str, list[str]] = {"you": [], "diary": []}
 
+        def _settle(you: str, diary: str) -> None:
+            """Осадок хода: факты в память, выводы и заголовок — в журнал.
+
+            Живой режим раньше только складывал реплики: разбор на факты висел в
+            текстовом пути (server._record), сюда не звали, и модель сохраняла
+            что-то лишь когда сама вспоминала про remember_fact. За 117 голосовых
+            ходов в памяти осело 12 фактов. Теперь тихий проход тот же, что у текста.
+            """
+            try:
+                facts = _chat.remember(mem, you, diary)
+                if facts:
+                    jr.add_takeaways(facts)
+            except Exception as e:
+                print(f"[voice] выводы не записались: {type(e).__name__}: {e}")
+            try:
+                if jr.needs_title():
+                    jr.set_title(_chat.title_for(jr.current_dialog()))
+            except Exception:
+                pass
+
         def flush_turn() -> None:
             """Реплики копятся по кусочкам — в журнал пишем целыми, в конце хода."""
             if jr is None:
                 return
+            whole = {}
             for who in ("you", "diary"):
-                text = "".join(said[who]).strip()
-                if text:
-                    jr.add_turn(who, text, voice=True)
+                whole[who] = "".join(said[who]).strip()
+                if whole[who]:
+                    jr.add_turn(who, whole[who], voice=True)
                 said[who] = []
+            # Разбор идёт отдельным потоком: он ходит в Gemini, а этот вызов держит
+            # приём звука — ждать его значит глушить разговор на несколько секунд.
+            if whole["you"] and whole["diary"]:
+                threading.Thread(target=_settle, daemon=True,
+                                 args=(whole["you"], whole["diary"])).start()
 
         async def from_gemini():
             async for raw in up:

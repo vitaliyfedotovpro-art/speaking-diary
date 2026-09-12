@@ -10,17 +10,36 @@ from __future__ import annotations
 from pathlib import Path
 
 from . import embed as _embed
-from .hsam import (Hsam, SRC_USER, SRC_LLM, SRC_SELF, SRC_VERIFIED,
-                   CANON_NONE, CANON_FOUNDATIONAL)
+from .hsam import (Hsam, SRC_USER, SRC_LLM, SRC_SELF, SRC_DOC, SRC_VERIFIED,
+                   SRC_LEGACY, CANON_NONE, CANON_FOUNDATIONAL)
 
-_MARK = {0: "⟨your words⟩", 1: "⟨my guess⟩", 2: "⟨about myself⟩",
-         3: "⟨document⟩", 4: "⟨verified⟩", 5: ""}
+_MARK = {SRC_USER: "⟨your words⟩", SRC_LLM: "⟨my guess⟩", SRC_SELF: "⟨about myself⟩",
+         SRC_DOC: "⟨document⟩", SRC_VERIFIED: "⟨verified⟩", SRC_LEGACY: ""}
+
+# Движок хранит провенанс ЧИСЛОМ, а в снимок кладёт ИМЕНЕМ. Имена сняты с самого
+# движка прогоном, а не выведены из констант: source 0..5 → эти строки.
+_SRC_NAMES = {"user_utterance": SRC_USER, "llm_generation": SRC_LLM,
+              "llm_self_description": SRC_SELF, "external_doc": SRC_DOC,
+              "verified_external": SRC_VERIFIED, "unknown_legacy": SRC_LEGACY}
+
+
+def source_of(row: dict) -> int:
+    """Провенанс в одном виде, откуда бы строка ни пришла — из снимка или из поиска."""
+    v = row.get("source_type")
+    if isinstance(v, str):
+        return _SRC_NAMES.get(v, SRC_LEGACY)
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return SRC_LEGACY
 
 
 class Memory:
     def __init__(self, path: str | Path):
         self.path = Path(path)
         self.h = Hsam(snapshot=self.path)
+        self._src_cache: dict[str, str] = {}
+        self._src_mtime: float = -1.0
 
     def remember(self, text: str, source: int = SRC_USER,
                  tags: list[str] | None = None, canon: int = CANON_NONE) -> str:
@@ -59,7 +78,47 @@ class Memory:
             qv = _embed.embed_query(query)
         except Exception:
             return []
-        return self.h.search(qv, top_k=n)
+        return self._with_provenance(self.h.search(qv, top_k=n))
+
+    def _source_map(self) -> dict[str, str]:
+        """id → провенанс, из снимка. Перечитываем только когда снимок изменился:
+        иначе разбор всего файла ложился бы на каждый ход разговора."""
+        try:
+            mtime = self.path.stat().st_mtime
+        except OSError:
+            return {}
+        if mtime == self._src_mtime:
+            return self._src_cache
+        import json as _j
+        try:
+            snap = _j.loads(self.path.read_text(encoding="utf-8"))
+        except Exception:
+            return self._src_cache
+        raw = (snap.get("nexus") or {}).get("nodes") or []
+        nodes = list(raw.values()) if isinstance(raw, dict) else raw
+        self._src_cache = {n["id"]: n.get("source_type") for n in nodes
+                           if isinstance(n, dict) and n.get("id")}
+        self._src_mtime = mtime
+        return self._src_cache
+
+    def _with_provenance(self, rows: list[dict]) -> list[dict]:
+        """🔴 Поиск через C-ABI отдаёт только node_id, content, cell_id, cosine и
+        score — провенанса в нём НЕТ (так написано и в заголовке движка). Из-за
+        этого пометки ⟨your words⟩/⟨my guess⟩ не проставлялись никогда, хотя промпт
+        велит модели на них опираться: она получала голый список без источников.
+        Достаём провенанс из снимка по node_id и заодно кладём id, на который
+        рассчитывают связи."""
+        if not rows:
+            return rows
+        src = self._source_map()
+        for r in rows:
+            nid = r.get("node_id") or r.get("id")
+            if not nid:
+                continue
+            r.setdefault("id", nid)
+            if nid in src:
+                r["source_type"] = src[nid]
+        return rows
 
     def confirm(self, node_id: str, helpful: bool) -> None:
         """Вердикт ЧЕЛОВЕКА о том, к месту ли всплыло воспоминание. Влияет на то,
@@ -129,6 +188,6 @@ def format_for_prompt(rows: list[dict]) -> str:
         return ""
     out = ["\n\nFROM THE DIARY (written earlier):"]
     for r in rows:
-        mark = _MARK.get(int(r.get("source_type", 5) or 5), "")
+        mark = _MARK.get(source_of(r), "")
         out.append(f"  · {mark} {(r.get('content') or '')[:600]}")
     return "\n".join(out)
