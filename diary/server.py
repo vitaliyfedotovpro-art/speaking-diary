@@ -108,7 +108,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send(code, json.dumps(obj, ensure_ascii=False).encode(), "application/json; charset=utf-8")
 
     def do_GET(self):
-        if self.path in ("/", "/index.html"):
+        path_only = self.path.split("?")[0]
+        if path_only in ("/", "/index.html"):
             f = WEB / "index.html"
             if not f.exists():
                 return self._send(404, b"index.html not found", "text/plain")

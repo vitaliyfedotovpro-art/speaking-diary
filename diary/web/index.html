@@ -15,6 +15,13 @@
       const savedTheme = paramTheme || localStorage.getItem('diary-theme') || 
         (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
       document.documentElement.setAttribute('data-theme', savedTheme);
+
+    (function() {
+      const paramLandscape = new URLSearchParams(window.location.search).get('landscape');
+      const savedLandscape = paramLandscape || localStorage.getItem('diary-landscape') || 'twin_peaks';
+      document.documentElement.setAttribute('data-landscape', savedLandscape);
+    })();
+
       const metaTheme = document.querySelector('meta[name="color-scheme"]');
       if (metaTheme) metaTheme.content = savedTheme === 'dark' ? 'dark light' : 'light dark';
     })();
@@ -81,39 +88,39 @@
       --spread-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.9);
     }
 
-    /* ─── LIGHT THEME (Daylight & Dry Palm Leaf) ─────────────────────────── */
+    /* ─── LIGHT THEME (Daylight & Natural Panorama) ─────────────────────────── */
     html[data-theme="light"] {
-      --bg-base: #F7F5EE;
-      --bg-surface: #EBE6DA;
-      --bg-surface-elevated: #DFD9CB;
-      --bg-card-diary: rgba(252, 250, 245, 0.95);
-      --bg-card-user: rgba(255, 255, 255, 0.95);
-      --bg-page-paper: #FAF7F0;
-      --bg-page-crease: rgba(70, 55, 40, 0.16);
+      --bg-base: #DFD8C8;
+      --bg-surface: #D5CCB8;
+      --bg-surface-elevated: #CBBFA8;
+      --bg-card-diary: rgba(255, 252, 245, 0.96);
+      --bg-card-user: rgba(255, 255, 255, 0.96);
+      --bg-page-paper: #F2EADB;
+      --bg-page-crease: rgba(70, 55, 40, 0.2);
 
-      --border-subtle: rgba(20, 30, 45, 0.09);
-      --border-card: rgba(20, 30, 45, 0.07);
-      --border-zari: rgba(184, 134, 11, 0.38);
-      --border-zari-bright: rgba(184, 134, 11, 0.9);
+      --border-subtle: rgba(40, 30, 20, 0.16);
+      --border-card: rgba(40, 30, 20, 0.14);
+      --border-zari: rgba(140, 98, 7, 0.45);
+      --border-zari-bright: rgba(140, 98, 7, 0.95);
 
-      --text-primary: #18212D;
-      --text-secondary: #566474;
-      --text-muted: #8493A4;
+      --text-primary: #121A24;
+      --text-secondary: #2C3846;
+      --text-muted: #546475;
 
-      --text-on-paper: #1A212D;
-      --text-diary-on-paper: #242D38;
+      --text-on-paper: #16202A;
+      --text-diary-on-paper: #222E3A;
 
-      --accent-gold: #B8860B;
-      --accent-gold-soft: rgba(184, 134, 11, 0.09);
-      --accent-gold-glow: rgba(184, 134, 11, 0.22);
-      --accent-vermilion: #B23A2B;
-      --accent-vermilion-soft: rgba(178, 58, 43, 0.09);
-      --accent-moss: #2B694C;
-      --accent-moss-soft: rgba(43, 105, 76, 0.12);
+      --accent-gold: #9E7008;
+      --accent-gold-soft: rgba(158, 112, 8, 0.12);
+      --accent-gold-glow: rgba(158, 112, 8, 0.28);
+      --accent-vermilion: #B83220;
+      --accent-vermilion-soft: rgba(184, 50, 32, 0.12);
+      --accent-moss: #226442;
+      --accent-moss-soft: rgba(34, 100, 66, 0.14);
 
-      --dot-grid-color: rgba(184, 134, 11, 0.11);
-      --vignette-color: rgba(247, 245, 238, 0.9);
-      --spread-shadow: 0 25px 60px -10px rgba(60, 45, 30, 0.22);
+      --dot-grid-color: rgba(40, 30, 20, 0.05);
+      --vignette-color: rgba(220, 212, 196, 0.28);
+      --spread-shadow: 0 30px 70px -10px rgba(35, 25, 12, 0.35);
     }
 
     /* ─── BASE RESETS ────────────────────────────────────────────────────── */
@@ -152,13 +159,14 @@
     }
 
     html[data-theme="light"] .bg-nature-backdrop {
-      opacity: 0.15;
+      opacity: 0.88;
+      filter: contrast(1.05) saturate(1.1) brightness(0.96);
     }
 
     .bg-vignette {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at 50% 45%, transparent 18%, var(--vignette-color) 82%);
+      background: radial-gradient(circle at 50% 45%, transparent 28%, var(--vignette-color) 88%);
       pointer-events: none;
       z-index: 1;
     }
@@ -221,36 +229,59 @@
       width: 100%;
     }
 
-    .selection-stage {
+    /* ─── SELECTION STAGE: BOTTOM QUADRANTS (LEFT: BOOK, RIGHT: VOICE) ──── */
+    .selection-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 120px;
-      width: 100%;
-      margin: auto 0;
-      perspective: 1200px;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
     }
 
-    @media (max-width: 860px) {
+    .selection-stage {
+      position: absolute;
+      top: 50vh;
+      bottom: clamp(68px, 14vh, 96px);
+      left: 0;
+      right: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      perspective: 1200px;
+      z-index: 5;
+      pointer-events: none;
+      padding: 0 clamp(36px, 9vw, 160px);
+    }
+
+    @media (max-width: 768px) {
       .selection-stage {
-        flex-direction: column;
-        gap: 50px;
+        padding: 0 clamp(16px, 4vw, 32px);
+        bottom: clamp(64px, 12vh, 84px);
       }
     }
 
-    /* ─── THE CLOSED DESIGNER NOTEBOOK (PHOTOREALISTIC OBJECT 1) ─────────── */
+    /* ─── THE CLOSED DESIGNER NOTEBOOK (CENTERED IN BOTTOM-LEFT QUADRANT) ── */
     .book-card {
+      pointer-events: auto;
       position: relative;
-      width: 320px;
-      height: 320px;
+      width: clamp(150px, 20vw, 220px);
+      height: clamp(150px, 20vw, 220px);
+      max-height: calc(50vh - 84px);
+      max-width: calc(50vh - 84px);
+      aspect-ratio: 1 / 1;
       cursor: pointer;
       border: none;
       background: transparent;
       outline: none;
       user-select: none;
       -webkit-user-select: none;
-      transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1), filter 380ms cubic-bezier(0.16, 1, 0.3, 1);
-      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.7));
+      transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), filter 340ms cubic-bezier(0.16, 1, 0.3, 1);
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.65));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -258,17 +289,16 @@
 
     .book-card:focus-visible {
       outline: 2px solid var(--accent-gold);
-      outline-offset: 10px;
-      border-radius: var(--radius-md);
+      outline-offset: 8px;
     }
 
     .book-card:hover {
-      transform: translateY(-12px) scale(1.04) rotateY(-5deg) rotateX(2deg);
-      filter: drop-shadow(0 26px 50px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 20px rgba(212, 175, 55, 0.22));
+      transform: translateY(-8px) scale(1.05) rotateY(-4deg);
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 20px var(--border-zari, rgba(212, 175, 55, 0.35)));
     }
 
     .book-card.opening {
-      transform: scale(1.08) rotateY(-25deg);
+      transform: scale(1.08) rotateY(-20deg);
       opacity: 0.85;
       transition: transform var(--transition-slow), opacity var(--transition-slow);
     }
@@ -278,49 +308,53 @@
       height: 100%;
       object-fit: contain;
       pointer-events: none;
+      transition: opacity 280ms ease, transform 340ms ease;
     }
 
-    /* ─── THE ARC REACTOR RIG (PHOTOREALISTIC OBJECT 2) ───────────────────── */
+    /* ─── THE ARC REACTOR RIG (CENTERED IN BOTTOM-RIGHT QUADRANT) ────────── */
     .reactor-card {
+      pointer-events: auto;
       position: relative;
-      width: 320px;
-      height: 320px;
+      width: clamp(140px, 18.5vw, 205px);
+      height: clamp(140px, 18.5vw, 205px);
+      max-height: calc(50vh - 84px);
+      max-width: calc(50vh - 84px);
+      aspect-ratio: 1 / 1;
       cursor: pointer;
       border: none;
       background: transparent;
       outline: none;
       user-select: none;
       -webkit-user-select: none;
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1), filter 380ms cubic-bezier(0.16, 1, 0.3, 1);
-      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.8));
+      transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), filter 340ms cubic-bezier(0.16, 1, 0.3, 1);
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75));
     }
 
     .reactor-card:focus-visible {
       outline: 2px solid var(--accent-gold);
-      outline-offset: 10px;
+      outline-offset: 8px;
     }
 
     .reactor-card:hover:not(.disabled) {
-      transform: translateY(-10px) scale(1.04);
-      filter: drop-shadow(0 24px 50px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 25px rgba(212, 175, 55, 0.3));
+      transform: translateY(-8px) scale(1.05);
+      filter: drop-shadow(0 20px 42px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 24px var(--reactor-glow-core, rgba(212, 175, 55, 0.4)));
+    }
+
+    .reactor-preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      transition: opacity 280ms ease, transform 340ms ease;
     }
 
     .reactor-card.disabled {
       cursor: not-allowed;
       opacity: 0.65;
       filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)) grayscale(0.5);
-    }
-
-    .reactor-preview-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-      pointer-events: none;
     }
 
     /* Subtle Idle Breathing Glow on Hardware */
@@ -342,6 +376,8 @@
 
     /* Selection Footer */
     .selection-footer {
+      position: relative;
+      z-index: 10;
       width: 100%;
       display: flex;
       align-items: center;
@@ -387,6 +423,103 @@
     .btn-icon-subtle:focus-visible {
       outline: 2px solid var(--accent-gold);
       outline-offset: 2px;
+    }
+
+    .lang-toggle-btn {
+      font: 600 11px/1 var(--font-mono);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Day Mode (Light Theme) UI Polish ───────────────────────────── */
+    html[data-theme="light"] .selection-footer {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 16px 16px 0 0;
+      padding: 12px 28px 14px;
+      box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .selection-stats {
+      color: #1A222C;
+      font-weight: 550;
+    }
+
+    html[data-theme="light"] #reactorNotice {
+      color: #374151 !important;
+      font-weight: 500;
+    }
+
+    html[data-theme="light"] .btn-icon-subtle {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(140, 98, 7, 0.28);
+      color: #1A222C;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .btn-icon-subtle:hover {
+      background: #FFFFFF;
+      color: #8C6207;
+      border-color: #8C6207;
+      box-shadow: 0 4px 14px rgba(140, 98, 7, 0.18);
+    }
+
+    html[data-theme="light"] .notebook-topbar {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 14px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+      margin-bottom: 10px;
+    }
+
+    html[data-theme="light"] .btn-back-shelf {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(140, 98, 7, 0.28);
+      color: #1A222C;
+      font-weight: 550;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .btn-back-shelf:hover {
+      background: #FFFFFF;
+      color: #8C6207;
+      border-color: #8C6207;
+    }
+
+    html[data-theme="light"] .notebook-breadcrumb {
+      color: #1A222C;
+      font-weight: 600;
+    }
+
+    html[data-theme="light"] .settings-modal {
+      box-shadow: 0 20px 50px rgba(40, 30, 20, 0.22);
+    }
+
+    .settings-landscape-preview-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1.5px solid rgba(140, 98, 7, 0.25);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 180ms ease;
+    }
+
+    .settings-landscape-preview-card:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-1px);
+    }
+
+    html[data-theme="light"] .settings-landscape-preview-card {
+      background: rgba(140, 98, 7, 0.08);
+      border-color: rgba(140, 98, 7, 0.35);
+      box-shadow: 0 2px 8px rgba(140, 98, 7, 0.06);
     }
 
     /* ==========================================================================
@@ -1238,16 +1371,37 @@
       overflow: hidden;
     }
 
+    .reactor-scenic-backdrop {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(28px) brightness(0.22) saturate(1.4);
+      transform: scale(1.1);
+      z-index: 0;
+      transition: background-image 500ms ease;
+      pointer-events: none;
+    }
+
+    .reactor-scenic-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(5, 8, 12, 0.4) 0%, rgba(5, 8, 12, 0.82) 65%, #05080C 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
     .reactor-exit-btn {
       position: absolute;
       top: 24px;
       right: 28px;
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(10, 14, 20, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: var(--radius-full);
       padding: 6px 16px;
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.85);
       cursor: pointer;
       z-index: 1010;
       transition: all var(--transition-fast);
@@ -1256,55 +1410,40 @@
     .reactor-exit-btn:hover {
       color: #FFFFFF;
       border-color: var(--accent-gold);
-      background: rgba(212, 175, 55, 0.15);
+      background: rgba(212, 175, 55, 0.25);
     }
 
     .reactor-rig-wrap {
       position: relative;
-      width: 480px;
-      height: 480px;
+      width: clamp(320px, 48vmin, 540px);
+      height: clamp(320px, 48vmin, 540px);
       max-width: 90vw;
       max-height: 90vw;
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.95);
+      z-index: 2;
     }
 
-    .rig-img-layer {
+    .rig-img-layer.resonator-img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
+      object-fit: contain;
       pointer-events: none;
-      transition: opacity 120ms ease-out;
-    }
-
-    .rig-img-layer.dormant {
-      opacity: 1;
-      z-index: 1;
-    }
-
-    .rig-img-layer.active-warm {
-      opacity: 0;
+      filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.92));
+      transition: transform 140ms ease-out, filter 140ms ease-out, opacity 240ms ease;
       z-index: 2;
-    }
-
-    .rig-img-layer.active-cool {
-      opacity: 0;
-      z-index: 3;
     }
 
     #reactorCanvas {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      inset: -15%;
+      width: 130%;
+      height: 130%;
       border-radius: 50%;
-      z-index: 4;
+      z-index: 3;
       pointer-events: none;
     }
 
@@ -2701,6 +2840,351 @@
       background: #A83827;
     }
 
+  
+    /* ==========================================================================
+       SCENIC LANDSCAPE ATMOSPHERE STYLES (TWIN PEAKS, PHANGAN, BANFF, KYOTO, ETC.)
+       ========================================================================== */
+
+    /* Default / Base fallback */
+    :root {
+      --landscape-bg: url('bg_twin_peaks.jpg');
+      --paper-bg: #F4EEDC;
+      --paper-blend: multiply;
+      --text-on-paper: #16221A;
+      --text-diary-on-paper: #223528;
+      --accent-landscape: #8C2626;
+      --bookmark-color: #8C2626;
+      --reactor-glow-core: #FFB347;
+      --reactor-glow-outer: #2E5A44;
+    }
+
+    /* 1. SNOQUALMIE FALLS & SALISH LODGE (TWIN PEAKS) */
+    html[data-landscape="twin_peaks"] {
+      --landscape-bg: url('bg_twin_peaks.jpg');
+      --paper-bg: #F4EEDC;
+      --paper-blend: multiply;
+      --text-on-paper: #16221A;
+      --text-diary-on-paper: #25382B;
+      --accent-landscape: #8C2626;
+      --accent-gold: #C69234;
+      --border-zari: rgba(198, 146, 52, 0.48);
+      --bookmark-color: #8C2626;
+      --reactor-glow-core: #FFBA42;
+      --reactor-glow-outer: #1E382B;
+    }
+
+    /* 2. KOH PHANGAN (THAILAND) */
+    html[data-landscape="phangan"] {
+      --landscape-bg: url('bg_koh_phangan.jpg');
+      --paper-bg: #FAF3E3;
+      --paper-blend: multiply;
+      --text-on-paper: #1E1611;
+      --text-diary-on-paper: #34251B;
+      --accent-landscape: #E27D60;
+      --accent-gold: #E29547;
+      --border-zari: rgba(226, 149, 71, 0.5);
+      --bookmark-color: #E27D60;
+      --reactor-glow-core: #FFA07A;
+      --reactor-glow-outer: #2AA198;
+    }
+
+    /* 3. BANFF & LAKE MORAINE (CANADIAN ROCKIES) */
+    html[data-landscape="banff"] {
+      --landscape-bg: url('bg_banff.jpg');
+      --paper-bg: #EEF5F5;
+      --paper-blend: multiply;
+      --text-on-paper: #121F28;
+      --text-diary-on-paper: #1D313D;
+      --accent-landscape: #1E828A;
+      --accent-gold: #48CAE4;
+      --border-zari: rgba(72, 202, 228, 0.5);
+      --bookmark-color: #1E828A;
+      --reactor-glow-core: #7FE0D6;
+      --reactor-glow-outer: #0F4C5C;
+    }
+
+    /* 4. KYOTO ARASHIYAMA (JAPAN BAMBOO ZEN) */
+    html[data-landscape="kyoto"] {
+      --landscape-bg: url('bg_kyoto.jpg');
+      --paper-bg: #F4F2E6;
+      --paper-blend: multiply;
+      --text-on-paper: #151814;
+      --text-diary-on-paper: #222920;
+      --accent-landscape: #A93226;
+      --accent-gold: #A48D36;
+      --border-zari: rgba(164, 141, 54, 0.5);
+      --bookmark-color: #5B7E54;
+      --reactor-glow-core: #E9C46A;
+      --reactor-glow-outer: #3A5A40;
+    }
+
+    /* 5. ICELAND KIRKJUFELL & AURORA BOREALIS */
+    html[data-landscape="iceland"] {
+      --landscape-bg: url('bg_iceland.jpg');
+      --paper-bg: #EAE6DF;
+      --paper-blend: multiply;
+      --text-on-paper: #13161C;
+      --text-diary-on-paper: #222633;
+      --accent-landscape: #00F5A0;
+      --accent-gold: #7B2CBF;
+      --border-zari: rgba(0, 245, 160, 0.5);
+      --bookmark-color: #6A4C93;
+      --reactor-glow-core: #00F5A0;
+      --reactor-glow-outer: #7B2CBF;
+    }
+
+    /* 6. WADI RUM DESERT & MILKY WAY (JORDAN) */
+    html[data-landscape="wadi_rum"] {
+      --landscape-bg: url('bg_wadi_rum.jpg');
+      --paper-bg: #F7EFE1;
+      --paper-blend: multiply;
+      --text-on-paper: #221410;
+      --text-diary-on-paper: #352119;
+      --accent-landscape: #C15C3D;
+      --accent-gold: #E0A96D;
+      --border-zari: rgba(224, 169, 109, 0.52);
+      --bookmark-color: #C15C3D;
+      --reactor-glow-core: #FF9F1C;
+      --reactor-glow-outer: #9E2A2B;
+    }
+
+    /* 7. KERALA & SOUTH INDIA (CLASSICAL) */
+    html[data-landscape="kerala"] {
+      --landscape-bg: url('south_india_bg.jpg');
+      --paper-bg: #EFE4D0;
+      --paper-blend: multiply;
+      --text-on-paper: #1A212D;
+      --text-diary-on-paper: #242D38;
+      --accent-landscape: #D4AF37;
+      --accent-gold: #D4AF37;
+      --border-zari: rgba(212, 175, 55, 0.42);
+      --bookmark-color: #D4AF37;
+      --reactor-glow-core: #F3C969;
+      --reactor-glow-outer: #E58C2B;
+    }
+
+    /* Dynamic background update */
+    .bg-nature-backdrop {
+      background-image: var(--landscape-bg) !important;
+      transition: background-image 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease !important;
+    }
+
+    /* Dynamic book page & ink styling */
+    .spread-book {
+      background-color: var(--paper-bg, #EFE4D0) !important;
+      background-blend-mode: var(--paper-blend, multiply) !important;
+      transition: background-color 0.5s ease;
+    }
+
+    .turn-user .turn-content {
+      color: var(--text-on-paper, #1A212D);
+    }
+
+    .turn-diary .turn-content {
+      color: var(--text-diary-on-paper, #242D38);
+    }
+
+    .right-chat-title {
+      color: var(--text-on-paper, #1A222C);
+    }
+
+    /* Atmosphere Switcher Button */
+    .atmosphere-toggle-btn {
+      font-size: 15px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .atmosphere-toggle-btn:hover {
+      transform: scale(1.15);
+    }
+
+    /* ─── ATMOSPHERE PICKER MODAL (VINTAGE SCENIC GALLERY) ──────────────── */
+    .atmosphere-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10, 14, 20, 0.72);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      transition: opacity var(--transition-fast);
+    }
+
+    .atmosphere-modal-backdrop.hidden {
+      display: none !important;
+    }
+
+    .atmosphere-modal-card {
+      width: 100%;
+      max-width: 680px;
+      max-height: 88vh;
+      background: #F9F5EC;
+      border: 1.5px solid #C4A767;
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalPop 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .atmosphere-modal-header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid rgba(140, 98, 7, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .atmosphere-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .atmosphere-modal-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 600;
+      color: #1D1711;
+      margin: 0;
+    }
+
+    .atmosphere-modal-subtitle {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: #7B6852;
+    }
+
+    .btn-atmosphere-close {
+      background: transparent;
+      border: 1px solid rgba(140, 98, 7, 0.25);
+      color: #593D0E;
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-atmosphere-close:hover {
+      background: rgba(140, 98, 7, 0.12);
+      color: #2B1D0E;
+      transform: scale(1.08);
+    }
+
+    .atmosphere-grid-scroll {
+      padding: 18px 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .atmosphere-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .atmosphere-card {
+      background: #FFFDF9;
+      border: 1.5px solid rgba(140, 98, 7, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .atmosphere-card:hover {
+      transform: translateY(-2px);
+      border-color: #B8860B;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .atmosphere-card.active {
+      border: 2px solid #8C6207;
+      box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.22), 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .atmosphere-thumb {
+      width: 100%;
+      height: 105px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid rgba(140, 98, 7, 0.12);
+    }
+
+    .atmosphere-info {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .atmosphere-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .atmosphere-name {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 600;
+      color: #1A212D;
+    }
+
+    .atmosphere-active-badge {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8C6207;
+      background: rgba(184, 134, 11, 0.14);
+      padding: 1px 7px;
+      border-radius: var(--radius-full);
+    }
+
+    .atmosphere-card.active .atmosphere-active-badge {
+      display: inline-flex;
+    }
+
+    .atmosphere-desc {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: #7B6852;
+      line-height: 1.4;
+    }
+
+    .atmosphere-swatches {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .swatch-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    }
+
   </style>
 
 <style>
@@ -2982,12 +3466,12 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="selection-stage">
         <!-- OBJECT 1: CLOSED DESIGNER NOTEBOOK (PHOTOREALISTIC) -->
         <button class="book-card" id="bookObject" type="button" aria-label="Open Notebook Journal">
-          <img src="book_closed.png" alt="Closed Luxury Designer Notebook" class="book-img">
+          <img src="book_twin_peaks.png" alt="Closed Luxury Designer Notebook" class="book-img" id="bookImg">
         </button>
 
         <!-- OBJECT 2: ARC REACTOR HARDWARE RIG (PHOTOREALISTIC) -->
         <button class="reactor-card" id="reactorObject" type="button" aria-label="Engage Arc Reactor Live Voice Visualizer">
-          <img src="arc_reactor_dormant.jpg" alt="Dormant Arc Reactor Hardware" class="reactor-preview-img">
+          <img src="reactor_twin_peaks.png" alt="Dormant Arc Reactor Hardware" class="reactor-preview-img" id="reactorImg">
         </button>
       </div>
 
@@ -2997,6 +3481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div style="font-size: 11px; color: var(--text-muted);" id="reactorNotice"></div>
         <div class="selection-actions">
+          <button class="btn-icon-subtle lang-toggle-btn" id="langToggleBtn" type="button" title="Switch to English" aria-label="Switch to English">EN</button>
           <button class="btn-icon-subtle" id="themeToggleBtn" type="button" title="Toggle Theme" aria-label="Toggle Theme">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -3027,6 +3512,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="notebook-nav-right">
+          <button class="btn-icon-subtle lang-toggle-btn" id="notebookLangToggleBtn" type="button" title="Switch to English" aria-label="Switch to English">EN</button>
           <button class="btn-icon-subtle" id="notebookThemeToggleBtn" type="button" title="Toggle Theme" aria-label="Toggle Theme">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -3138,21 +3624,21 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <!-- ======================================================================
-         SCREEN 3: ARC REACTOR VISUALIZER (MODE 2 - PHOTOREALISTIC HARDWARE RIG)
+         SCREEN 3: SCENIC VOICE VISUALIZER RESONATOR (MODE 2 - LIVE VOICE)
          ====================================================================== -->
-    <div class="reactor-view hidden" id="reactorScreen" role="region" aria-label="Arc Reactor Visualizer Live Mode">
+    <div class="reactor-view hidden" id="reactorScreen" role="region" aria-label="Voice Visualizer Live Mode">
+      <!-- Atmospheric Backdrop for Current Scenic Theme -->
+      <div class="reactor-scenic-backdrop" id="reactorScenicBackdrop"></div>
+      <div class="reactor-scenic-overlay"></div>
+
       <button class="reactor-exit-btn" id="closeReactorBtn" type="button">
         ✕ Exit · <kbd style="font-family:var(--font-mono);font-size:11px;opacity:0.7;">Esc</kbd>
       </button>
 
-      <div class="reactor-rig-wrap">
-        <!-- 1. Dormant Base Layer -->
-        <img src="arc_reactor_dormant.jpg" alt="Dormant Arc Reactor Mechanism" class="rig-img-layer dormant">
-        <!-- 2. Warm Speaking Active Layer -->
-        <img src="arc_reactor_active.jpg" alt="Active Golden Arc Reactor" class="rig-img-layer active-warm" id="rigActiveImg">
-        <!-- 3. Cool Listening Active Layer -->
-        <img src="arc_reactor_listening.jpg" alt="Listening Indigo Arc Reactor" class="rig-img-layer active-cool" id="rigListeningImg">
-        <!-- 4. Dynamic Live Audio Canvas -->
+      <div class="reactor-rig-wrap" id="reactorRigWrap">
+        <!-- The theme's unique visualizer object (high-res transparent PNG) -->
+        <img src="reactor_twin_peaks.png" alt="Voice Resonator" class="rig-img-layer resonator-img" id="reactorRigImg">
+        <!-- Dynamic Live Audio Canvas -->
         <canvas id="reactorCanvas"></canvas>
       </div>
 
@@ -3392,6 +3878,31 @@ document.addEventListener('DOMContentLoaded', () => {
               </select>
             </div>
           </div>
+
+          <!-- LANDSCAPE ATMOSPHERE SELECTOR IN SETTINGS -->
+          <div class="settings-atmosphere-group" style="margin-top: 16px; border-top: 1px solid rgba(140, 98, 7, 0.15); padding-top: 14px;">
+            <div style="margin-bottom: 8px;">
+              <label style="font-weight: 600; font-size: 13.5px; color: var(--text-primary);" id="lblLandscapeSelect">
+                Пейзаж и атмосфера дневника
+              </label>
+            </div>
+
+            <!-- Preview Card inside Settings -->
+            <div class="settings-landscape-preview-card" id="settingsLandscapePreviewCard" title="Нажмите, чтобы сменить атмосферу">
+              <img id="settingsLandscapeThumb" src="bg_twin_peaks.jpg" alt="Preview" style="width: 72px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.15); flex-shrink: 0;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong id="settingsLandscapeName" style="font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Снокуалми (Твин Пикс)</strong>
+                  <span id="settingsLandscapeSwatches" style="display: inline-flex; gap: 4px;"></span>
+                </div>
+                <div id="settingsLandscapeDesc" style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  Водопад, отель Salish Lodge и туман
+                </div>
+              </div>
+              <span style="font-size: 12px; color: var(--accent-gold); flex-shrink: 0;" id="settingsLandscapeChangeLabel">Change ▾</span>
+            </div>
+          </div>
+
         </section>
 
         <!-- SECTION 4: DATA OWNERSHIP & EXPORT -->
@@ -3465,6 +3976,26 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 
   <!-- ======================================================================
+       ATMOSPHERE / LANDSCAPE PICKER MODAL
+       ====================================================================== -->
+  <div class="atmosphere-modal-backdrop hidden" id="atmospherePickerModal" role="dialog" aria-modal="true" aria-labelledby="atmosphereModalTitle" onclick="if(event.target===this && window.closeAtmospherePicker) window.closeAtmospherePicker();">
+    <div class="atmosphere-modal-card">
+      <div class="atmosphere-modal-header">
+        <div class="atmosphere-header-text">
+          <h3 class="atmosphere-modal-title" id="atmosphereModalTitle">Атмосфера дневника</h3>
+          <span class="atmosphere-modal-subtitle" id="atmosphereModalSubtitle">Выберите пейзаж и цветовую палитру</span>
+        </div>
+        <button type="button" class="btn-atmosphere-close" id="btnAtmosphereClose" aria-label="Close" onclick="if(window.closeAtmospherePicker) window.closeAtmospherePicker();">✕</button>
+      </div>
+      <div class="atmosphere-grid-scroll">
+        <div class="atmosphere-grid" id="atmosphereGrid">
+          <!-- Populated dynamically by renderAtmosphereGrid() -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
        APPLICATION JAVASCRIPT LOGIC
        ====================================================================== -->
   <script>
@@ -3515,8 +4046,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeReactorBtn = document.getElementById('closeReactorBtn');
     const reactorCanvas = document.getElementById('reactorCanvas');
-    const rigActiveImg = document.getElementById('rigActiveImg');
-    const rigListeningImg = document.getElementById('rigListeningImg');
+    const reactorRigImg = document.getElementById('reactorRigImg');
+    const reactorScenicBackdrop = document.getElementById('reactorScenicBackdrop');
     const reactorSubtitle = document.getElementById('reactorSubtitle');
 
     /* ── Esc helper ──────────────────────────────────────────────────────── */
@@ -3616,6 +4147,8 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteMessageConfirmBody: 'Remove this message from the dialogue?',
         deleteTakeaways: 'Remove takeaways',
         turnDeletedNotice: '(Message removed)',
+        atmosphereTitle: 'Atmosphere & Style',
+        atmosphereAria: 'Atmosphere & Style',
       },
       ru: {
         langCode: 'ru',
@@ -3690,6 +4223,8 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteMessageConfirmBody: 'Удалить эту реплику из разговора?',
         deleteTakeaways: 'Удалить выводы',
         turnDeletedNotice: '(Реплика удалена)',
+        atmosphereTitle: 'Атмосфера и стиль',
+        atmosphereAria: 'Атмосфера и стиль',
       }
     };
 
@@ -3713,6 +4248,8 @@ document.addEventListener('DOMContentLoaded', () => {
         langLabel: 'Language (Язык)',
         langHint: 'Determines interface language, diary responses, and voice recognition.',
         themeLabel: 'Visual Theme',
+        landscapeSection: 'Landscape Atmosphere & Style',
+        landscapeCardTitle: 'Click to choose scenic atmosphere',
         exportSection: 'Data Ownership & Export',
         exportHint: 'You own your words. Download the entire diary memory and conversation history at any time.',
         exportBtn: 'Export Diary Archive (JSON)'
@@ -3736,6 +4273,8 @@ document.addEventListener('DOMContentLoaded', () => {
         langLabel: 'Язык (Language)',
         langHint: 'Определяет язык интерфейса, ответов дневника и распознавания речи.',
         themeLabel: 'Визуальная тема',
+        landscapeSection: 'Пейзаж и атмосфера дневника',
+        landscapeCardTitle: 'Нажмите, чтобы выбрать пейзаж и атмосферу',
         exportSection: 'Владение данными и экспорт',
         exportHint: 'Ваши слова принадлежат вам. В любой момент можно скачать всю память дневника и историю разговоров.',
         exportBtn: 'Экспорт архива дневника (JSON)'
@@ -3861,6 +4400,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hintExport) hintExport.textContent = s.exportHint;
       const exportBtnSpan = document.querySelector('#exportDiaryBtn span');
       if (exportBtnSpan) exportBtnSpan.textContent = s.exportBtn;
+
+      if (typeof window.updateSettingsLandscapePreview === 'function') {
+        window.updateSettingsLandscapePreview();
+      }
     }
 
     function applyLanguage(choice) {
@@ -3877,6 +4420,7 @@ document.addEventListener('DOMContentLoaded', () => {
       initStats();
       initCapabilities();
       updateSettingsModalStrings();
+      paintLangToggle();
     }
     window.applyLanguage = applyLanguage;
     window.getSystemLanguage = getSystemLanguage;
@@ -3931,6 +4475,19 @@ document.addEventListener('DOMContentLoaded', () => {
           if (penInput) penInput.focus();
         }, 300);
       } else if (screen === 'reactor') {
+        const curL = (typeof LANDSCAPES !== 'undefined' && typeof getCurrentLandscape === 'function')
+          ? (LANDSCAPES.find(l => l.id === getCurrentLandscape()) || LANDSCAPES[0]) : null;
+        if (curL) {
+          const rigImg = document.getElementById('reactorRigImg');
+          if (rigImg && (!rigImg.src || !rigImg.src.endsWith(curL.reactor))) {
+            rigImg.src = curL.reactor;
+            rigImg.style.opacity = '1';
+          }
+          const bgLayer = document.getElementById('reactorScenicBackdrop');
+          if (bgLayer) {
+            bgLayer.style.backgroundImage = `url(${curL.bg})`;
+          }
+        }
         startReactorEngine();
       } else {
         stopReactorEngine();
@@ -3952,6 +4509,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeNotebookBtn.addEventListener('click', () => setScreen('select'));
     closeReactorBtn.addEventListener('click', () => setScreen('select'));
+    window.setScreen = setScreen;
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -3975,6 +4533,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     themeToggleBtn.addEventListener('click', toggleTheme);
     notebookThemeToggleBtn.addEventListener('click', toggleTheme);
+
+    /* ── Language Toggle ─────────────────────────────────────────────────── */
+    // Кнопка показывает язык, НА который переключит. Выбор пишется туда же, где
+    // его держит селект в настройках, — иначе они разойдутся после перезагрузки.
+    function langToggleBtns() {
+      return ['langToggleBtn', 'notebookLangToggleBtn']
+        .map(id => document.getElementById(id)).filter(Boolean);
+    }
+    function paintLangToggle() {
+      const target = currentLang === 'ru' ? 'en' : 'ru';
+      const label = target === 'en' ? 'Switch to English' : 'Переключить на русский';
+      langToggleBtns().forEach(b => {
+        b.textContent = target.toUpperCase();
+        b.setAttribute('title', label);
+        b.setAttribute('aria-label', label);
+      });
+    }
+    function toggleLanguage() {
+      const next = currentLang === 'ru' ? 'en' : 'ru';
+      localStorage.setItem('diary-language', next);
+      const sel = document.getElementById('languageSelect');
+      if (sel) sel.value = next;
+      applyLanguage(next);
+    }
+    langToggleBtns().forEach(b => b.addEventListener('click', toggleLanguage));
+    paintLangToggle();
 
     /* ── Settings Dialog Trigger ─────────────────────────────────────────── */
     openSettingsBtn.addEventListener('click', () => window.openSettings && window.openSettings());
@@ -5310,11 +5894,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const isListening = !isSpeaking && micVol > 0.05;
       const isSilence = !isSpeaking && !isListening;
 
-      if (rigActiveImg) {
-        rigActiveImg.style.opacity = Math.min(1, Math.max(0, (speakerVol - 0.05) * 1.5));
-      }
-      if (rigListeningImg) {
-        rigListeningImg.style.opacity = Math.min(1, Math.max(0, (micVol - 0.05) * 1.5));
+      const curL = (typeof LANDSCAPES !== 'undefined' && typeof getCurrentLandscape === 'function')
+        ? (LANDSCAPES.find(l => l.id === getCurrentLandscape()) || LANDSCAPES[0]) : null;
+      const themeGlowCore = curL ? (curL.glowSpeak || '#FFD700') : '#FFD700';
+      const themeGlowListen = curL ? (curL.glowListen || '#38BDF8') : '#38BDF8';
+
+      if (reactorRigImg) {
+        if (isSpeaking) {
+          const glowPx = Math.round(18 + speakerVol * 65);
+          const bright = (1 + speakerVol * 0.35).toFixed(2);
+          const scale = (1 + speakerVol * 0.04).toFixed(3);
+          reactorRigImg.style.filter = `drop-shadow(0 0 ${glowPx}px ${themeGlowCore}) drop-shadow(0 20px 45px rgba(0,0,0,0.92)) brightness(${bright})`;
+          reactorRigImg.style.transform = `scale(${scale})`;
+        } else if (isListening) {
+          const glowPx = Math.round(14 + micVol * 55);
+          const bright = (1 + micVol * 0.25).toFixed(2);
+          const scale = (1 + micVol * 0.03).toFixed(3);
+          reactorRigImg.style.filter = `drop-shadow(0 0 ${glowPx}px ${themeGlowListen}) drop-shadow(0 20px 45px rgba(0,0,0,0.92)) brightness(${bright})`;
+          reactorRigImg.style.transform = `scale(${scale})`;
+        } else {
+          reactorRigImg.style.filter = `drop-shadow(0 20px 50px rgba(0, 0, 0, 0.88))`;
+          reactorRigImg.style.transform = `scale(1)`;
+        }
       }
 
       ctx.save();
@@ -5327,48 +5928,48 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.arc(cx, cy, baseR * 0.94, 0, Math.PI * 2);
       ctx.strokeStyle = isSpeaking 
-        ? `rgba(212, 175, 55, ${0.2 + speakerVol * 0.6})`
-        : (isListening ? `rgba(56, 189, 248, ${0.2 + micVol * 0.6})` : 'rgba(212, 175, 55, 0.12)');
+        ? `rgba(255, 215, 0, ${0.25 + speakerVol * 0.6})`
+        : (isListening ? `rgba(56, 189, 248, ${0.25 + micVol * 0.6})` : 'rgba(255, 255, 255, 0.12)');
       ctx.lineWidth = 2 * dpr;
       ctx.stroke();
 
-      const numDots = 12;
+      const numDots = 14;
       for (let i = 0; i < numDots; i++) {
         const angle = reactorRotAngle + (i * Math.PI * 2 / numDots);
-        const r = baseR * 0.65;
+        const r = baseR * 0.72;
         const x = cx + Math.cos(angle) * r;
         const y = cy + Math.sin(angle) * r;
         ctx.beginPath();
         ctx.arc(x, y, 3 * dpr, 0, Math.PI * 2);
-        ctx.fillStyle = isSpeaking ? '#FFD700' : (isListening ? '#38BDF8' : 'rgba(212, 175, 55, 0.4)');
+        ctx.fillStyle = isSpeaking ? themeGlowCore : (isListening ? themeGlowListen : 'rgba(255, 255, 255, 0.35)');
         ctx.fill();
       }
 
       if (isSpeaking) {
-        const pulseR = baseR * (0.28 + speakerVol * 0.22);
+        const pulseR = baseR * (0.32 + speakerVol * 0.24);
         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
-        grad.addColorStop(0, 'rgba(255, 235, 150, 0.95)');
-        grad.addColorStop(0.4, 'rgba(212, 175, 55, 0.7)');
-        grad.addColorStop(1, 'rgba(180, 100, 20, 0)');
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        grad.addColorStop(0.35, themeGlowCore);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.beginPath();
         ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
         ctx.fillStyle = grad;
-        ctx.shadowColor = 'rgba(212, 175, 55, 0.8)';
-        ctx.shadowBlur = 30 * dpr;
+        ctx.shadowColor = themeGlowCore;
+        ctx.shadowBlur = 32 * dpr;
         ctx.fill();
       } else if (isListening) {
-        const pulseR = baseR * (0.24 + micVol * 0.25);
+        const pulseR = baseR * (0.28 + micVol * 0.25);
         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
-        grad.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
-        grad.addColorStop(0.5, 'rgba(56, 189, 248, 0.65)');
-        grad.addColorStop(1, 'rgba(14, 116, 144, 0)');
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        grad.addColorStop(0.35, themeGlowListen);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.beginPath();
         ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
         ctx.fillStyle = grad;
-        ctx.shadowColor = 'rgba(56, 189, 248, 0.7)';
-        ctx.shadowBlur = 25 * dpr;
+        ctx.shadowColor = themeGlowListen;
+        ctx.shadowBlur = 28 * dpr;
         ctx.fill();
       }
 
@@ -5734,7 +6335,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     if (onboardingGeminiKey) {
       onboardingGeminiKey.addEventListener('input', () => {
         const v = onboardingGeminiKey.value.trim();
-        if (v.startsWith('AIza') && v.length >= 35) {
+        if ((v.startsWith('AIza') || v.startsWith('AQ.')) && v.length >= 35) {
           verifyGeminiKey(v, true);
         } else {
           geminiKeyValid = false;
@@ -5764,6 +6365,17 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         if (!geminiKeyValid) {
           const ok = await verifyGeminiKey(gKey, true);
           if (!ok) return;
+        }
+
+        // Ключ нужен СЕРВЕРУ: разговор идёт через него, а localStorage он не видит.
+        // Без этого онбординг «проходил», а дневник оставался без ключа.
+        try {
+          await fetch('/api/keys', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gemini: gKey, groq: groqKeyValid ? grKey : '' })
+          });
+        } catch (e) {
+          console.warn('[onboarding] ключ не сохранился на сервере:', e);
         }
 
         localStorage.setItem('diary-gemini-api-key', gKey);
@@ -5805,13 +6417,306 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     updateSettingsModalStrings();
 
     // Check keys for first-launch routing (GEMINI_TASK_onboarding2)
+    // Ключ может жить у сервера (~/.diary/key), а в localStorage его нет: новый
+    // порт или другой браузер. Прежняя проверка смотрела только в браузер и гнала
+    // на онбординг человека с рабочим ключом.
     const storedGeminiKey = localStorage.getItem('diary-gemini-api-key');
-    if (!storedGeminiKey) {
-      setScreen('onboarding');
-      initAssistantGreeting();
-    } else {
+    if (storedGeminiKey) {
       setScreen('select');
+    } else {
+      fetch('/api/settings').then(r => r.json()).then(st => {
+        if (st.hasKey) { setScreen('select'); return; }
+        setScreen('onboarding');
+        initAssistantGreeting();
+      }).catch(() => {
+        setScreen('onboarding');
+        initAssistantGreeting();
+      });
     }
+
+
+    /* ==========================================================================
+       LANDSCAPE ATMOSPHERE CONTROLLER & VISUAL OBJECT SWITCHER
+       ========================================================================== */
+    const LANDSCAPES = [
+      {
+        id: 'twin_peaks',
+        bg: 'bg_twin_peaks.jpg',
+        book: 'book_twin_peaks.png',
+        reactor: 'reactor_twin_peaks.png',
+        ru: { name: 'Снокуалми (Твин Пикс)', desc: 'Водопад, отель Salish Lodge и туман' },
+        en: { name: 'Snoqualmie (Twin Peaks)', desc: 'Misty falls, Salish Lodge & Douglas firs' },
+        colors: ['#F4EEDC', '#16221A', '#8C2626', '#C69234'],
+        glowSpeak: '#FFBA42',
+        glowListen: '#38B46B'
+      },
+      {
+        id: 'phangan',
+        bg: 'bg_koh_phangan.jpg',
+        book: 'book_phangan.png',
+        reactor: 'reactor_phangan.png',
+        ru: { name: 'Ко Пханган (Таиланд)', desc: 'Закат над заливом, бирюза и пальмы' },
+        en: { name: 'Koh Phangan (Thailand)', desc: 'Sunset over the Gulf of Thailand & palms' },
+        colors: ['#FAF3E3', '#1E1611', '#E27D60', '#2AA198'],
+        glowSpeak: '#FFA07A',
+        glowListen: '#2AA198'
+      },
+      {
+        id: 'banff',
+        bg: 'bg_banff.jpg',
+        book: 'book_banff.png',
+        reactor: 'reactor_banff.png',
+        ru: { name: 'Банф (Озеро Морейн)', desc: 'Ледниковая вода и вершины Скалистых гор' },
+        en: { name: 'Banff & Lake Moraine', desc: 'Glacial Lake Moraine & Canadian Rockies' },
+        colors: ['#EEF5F5', '#121F28', '#1E828A', '#7FE0D6'],
+        glowSpeak: '#7FE0D6',
+        glowListen: '#48CAE4'
+      },
+      {
+        id: 'kyoto',
+        bg: 'bg_kyoto.jpg',
+        book: 'book_kyoto.png',
+        reactor: 'reactor_kyoto.png',
+        ru: { name: 'Киото (Арасияма)', desc: 'Бамбуковая роща, мох и дзен-покой' },
+        en: { name: 'Kyoto Arashiyama', desc: 'Sagano bamboo grove, moss & zen serenity' },
+        colors: ['#F4F2E6', '#151814', '#A93226', '#5B7E54'],
+        glowSpeak: '#E9C46A',
+        glowListen: '#5B7E54'
+      },
+      {
+        id: 'iceland',
+        bg: 'bg_iceland.jpg',
+        book: 'book_iceland.png',
+        reactor: 'reactor_iceland.png',
+        ru: { name: 'Исландия (Северное сияние)', desc: 'Гора Киркьюфедль и сияние Авроры' },
+        en: { name: 'Iceland (Kirkjufell & Aurora)', desc: 'Kirkjufell, polar night & Aurora Borealis' },
+        colors: ['#EAE6DF', '#13161C', '#00F5A0', '#7B2CBF'],
+        glowSpeak: '#00F5A0',
+        glowListen: '#9D4EDD'
+      },
+      {
+        id: 'wadi_rum',
+        bg: 'bg_wadi_rum.jpg',
+        book: 'book_wadi_rum.png',
+        reactor: 'reactor_wadi_rum.png',
+        ru: { name: 'Вади-Рам (Лунная долина)', desc: 'Красные каньоны и звёздный купол' },
+        en: { name: 'Wadi Rum (Jordan Desert)', desc: 'Red sandstone canyons & the Milky Way' },
+        colors: ['#F7EFE1', '#221410', '#C15C3D', '#E0A96D'],
+        glowSpeak: '#FF9F1C',
+        glowListen: '#C15C3D'
+      },
+      {
+        id: 'kerala',
+        bg: 'south_india_bg.jpg',
+        book: 'book_kerala.png',
+        reactor: 'reactor_kerala.png',
+        ru: { name: 'Керала (Южная Индия)', desc: 'Классический колам, латунь и пальмовые листья' },
+        en: { name: 'Kerala & South India', desc: 'Classic Kolam, brass & palm leaves' },
+        colors: ['#EFE4D0', '#1A212D', '#D4AF37', '#8C6207'],
+        glowSpeak: '#FFD700',
+        glowListen: '#38BDF8'
+      }
+    ];
+
+    function getCurrentLandscape() {
+      return document.documentElement.getAttribute('data-landscape') ||
+             localStorage.getItem('diary-landscape') ||
+             'twin_peaks';
+    }
+
+    function updateSettingsLandscapePreview() {
+      const currentId = getCurrentLandscape();
+      const item = LANDSCAPES.find(l => l.id === currentId) || LANDSCAPES[0];
+      const effLang = document.documentElement.getAttribute('lang') || (typeof currentLang !== 'undefined' ? currentLang : 'ru');
+      const isRu = effLang === 'ru';
+      const loc = isRu ? item.ru : item.en;
+
+      const thumb = document.getElementById('settingsLandscapeThumb');
+      const nameEl = document.getElementById('settingsLandscapeName');
+      const descEl = document.getElementById('settingsLandscapeDesc');
+      const swatchesEl = document.getElementById('settingsLandscapeSwatches');
+      const changeLbl = document.getElementById('settingsLandscapeChangeLabel');
+      const headerLbl = document.getElementById('lblLandscapeSelect');
+      const cardEl = document.getElementById('settingsLandscapePreviewCard');
+
+      if (thumb) thumb.src = item.bg;
+      if (nameEl) nameEl.textContent = loc.name;
+      if (descEl) descEl.textContent = loc.desc;
+      if (changeLbl) changeLbl.textContent = isRu ? 'Выбрать ▾' : 'Change ▾';
+      if (headerLbl) headerLbl.textContent = isRu ? 'Пейзаж и атмосфера дневника' : 'Landscape Atmosphere & Style';
+      if (cardEl) cardEl.setAttribute('title', isRu ? 'Нажмите, чтобы выбрать пейзаж и атмосферу' : 'Click to choose scenic atmosphere');
+      if (swatchesEl) {
+        swatchesEl.innerHTML = item.colors.map(c => `<span style="width:10px;height:10px;border-radius:50%;background:${c};display:inline-block;border:1px solid rgba(255,255,255,0.3);"></span>`).join('');
+      }
+    }
+
+    function applyObjectsAppearance(item) {
+      // Dynamic book cover image update with crossfade
+      const bookImg = document.getElementById('bookImg');
+      if (bookImg && item.book) {
+        bookImg.style.opacity = '0';
+        setTimeout(() => {
+          bookImg.src = item.book;
+          bookImg.onload = () => { bookImg.style.opacity = '1'; };
+        }, 120);
+      }
+
+      // Dynamic voice visualizer image update with crossfade
+      const reactorImg = document.getElementById('reactorImg');
+      if (reactorImg && item.reactor) {
+        reactorImg.style.opacity = '0';
+        setTimeout(() => {
+          reactorImg.src = item.reactor;
+          reactorImg.onload = () => { reactorImg.style.opacity = '1'; };
+        }, 120);
+      }
+
+      // Dynamic voice visualizer on full reactor screen
+      const reactorRigImg = document.getElementById('reactorRigImg');
+      if (reactorRigImg && item.reactor) {
+        reactorRigImg.style.opacity = '0';
+        setTimeout(() => {
+          reactorRigImg.src = item.reactor;
+          reactorRigImg.onload = () => { reactorRigImg.style.opacity = '1'; };
+        }, 120);
+      }
+
+      // Scenic atmospheric backdrop for full reactor screen
+      const reactorScenicBackdrop = document.getElementById('reactorScenicBackdrop');
+      if (reactorScenicBackdrop && item.bg) {
+        reactorScenicBackdrop.style.backgroundImage = `url(${item.bg})`;
+      }
+    }
+
+    function setLandscape(landscapeId) {
+      const item = LANDSCAPES.find(l => l.id === landscapeId) || LANDSCAPES[0];
+      document.documentElement.setAttribute('data-landscape', item.id);
+      localStorage.setItem('diary-landscape', item.id);
+      applyObjectsAppearance(item);
+      updateSettingsLandscapePreview();
+      renderAtmosphereGrid();
+    }
+
+    function renderAtmosphereGrid() {
+      const grid = document.getElementById('atmosphereGrid');
+      if (!grid) return;
+      const current = getCurrentLandscape();
+      const isRu = currentLang === 'ru';
+
+      let html = '';
+      LANDSCAPES.forEach(item => {
+        const active = item.id === current;
+        const loc = isRu ? item.ru : item.en;
+        const swatches = item.colors.map(c => `<span class="swatch-dot" style="background-color: ${c}"></span>`).join('');
+        html += `
+          <div class="atmosphere-card ${active ? 'active' : ''}" data-landscape-id="${item.id}">
+            <img src="${item.bg}" alt="${esc(loc.name)}" class="atmosphere-thumb" loading="lazy">
+            <div class="atmosphere-info">
+              <div class="atmosphere-title-row">
+                <span class="atmosphere-name">${esc(loc.name)}</span>
+                <span class="atmosphere-active-badge">✓ ${isRu ? 'Выбрано' : 'Active'}</span>
+              </div>
+              <span class="atmosphere-desc">${esc(loc.desc)}</span>
+              <div class="atmosphere-swatches">${swatches}</div>
+            </div>
+          </div>
+        `;
+      });
+      grid.innerHTML = html;
+
+      grid.querySelectorAll('.atmosphere-card[data-landscape-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          const lid = card.getAttribute('data-landscape-id');
+          setLandscape(lid);
+        });
+      });
+
+      // Update modal titles for current lang
+      const titleEl = document.getElementById('atmosphereModalTitle');
+      const subEl = document.getElementById('atmosphereModalSubtitle');
+      if (titleEl) titleEl.textContent = isRu ? 'Атмосфера дневника' : 'Diary Atmosphere';
+      if (subEl) subEl.textContent = isRu ? 'Выберите пейзаж и цветовую палитру' : 'Choose your scenic landscape & atmosphere';
+    }
+
+    function openAtmospherePicker() {
+      renderAtmosphereGrid();
+      const modal = document.getElementById('atmospherePickerModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeAtmospherePicker() {
+      const modal = document.getElementById('atmospherePickerModal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    }
+    window.closeAtmospherePicker = closeAtmospherePicker;
+    window.openAtmospherePicker = openAtmospherePicker;
+    window.setLandscape = setLandscape;
+
+    // Direct listener
+    const btnAtmosphereClose = document.getElementById('btnAtmosphereClose');
+    if (btnAtmosphereClose) {
+      btnAtmosphereClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeAtmospherePicker();
+      });
+    }
+
+    const atmospherePickerModal = document.getElementById('atmospherePickerModal');
+    if (atmospherePickerModal) {
+      atmospherePickerModal.addEventListener('click', (e) => {
+        if (e.target === atmospherePickerModal) {
+          closeAtmospherePicker();
+        }
+      });
+    }
+
+    // Global capture listener with delegation - guarantees close button works unconditionally
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!target) return;
+      if (target.id === 'btnAtmosphereClose' || (target.closest && target.closest('#btnAtmosphereClose'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAtmospherePicker();
+      } else if (target.id === 'atmospherePickerModal') {
+        closeAtmospherePicker();
+      }
+    }, true);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('atmospherePickerModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeAtmospherePicker();
+        }
+      }
+    });
+
+    // Settings landscape preview card click
+    const settingsLandscapePreviewCard = document.getElementById('settingsLandscapePreviewCard');
+    if (settingsLandscapePreviewCard) {
+      settingsLandscapePreviewCard.addEventListener('click', () => {
+        openAtmospherePicker();
+      });
+    }
+
+    // Initial setup of objects and preview on page load
+    (function initLandscapeVisuals() {
+      const current = getCurrentLandscape();
+      const item = LANDSCAPES.find(l => l.id === current) || LANDSCAPES[0];
+      applyObjectsAppearance(item);
+      updateSettingsLandscapePreview();
+    })();
+
+    window.updateSettingsLandscapePreview = updateSettingsLandscapePreview;
+    window.openAtmospherePicker = openAtmospherePicker;
+    window.closeAtmospherePicker = closeAtmospherePicker;
+    window.setLandscape = setLandscape;
+    window.applyObjectsAppearance = applyObjectsAppearance;
 
   })();
   </script>
@@ -5899,6 +6804,9 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         loadSettingsIntoUI();
         if (typeof window.updateSettingsModalStrings === 'function') {
           window.updateSettingsModalStrings();
+        }
+        if (typeof window.updateSettingsLandscapePreview === 'function') {
+          window.updateSettingsLandscapePreview();
         }
 
         if (isFirstLaunch) {
@@ -7014,5 +7922,7 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
   });
 })();
 </script>
+
 </body>
 </html>
+
