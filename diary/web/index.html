@@ -2482,7 +2482,7 @@
     .sticker-header-stamp {
       font-size: 8px;
       font-weight: 700;
-      letter-spacing: 1.1px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
       padding-bottom: 5px;
       border-bottom: 1px dashed rgba(0, 0, 0, 0.16);
@@ -7779,18 +7779,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      function getLandscapeStamp(landscapeId) {
-        const stamps = {
-          twin_peaks: 'THE GREAT NORTHERN · SNOQUALMIE',
-          phangan: 'KOH PHANGAN · SUNSET NOTE',
-          banff: 'BANFF FIELD LOG · 51°10′N',
-          kyoto: '京都 · 嵐山 (ARASHIYAMA NOTE)',
-          iceland: 'STÖÐ · 64°08′N 21°56′W',
-          wadi_rum: 'WADI RUM · VALLEY OF THE MOON',
-          kerala: 'MALABAR BOTANICAL · COCHIN',
-          black_lodge: '★ TOP SECRET · BLUE BOOK ★'
-        };
-        return stamps[landscapeId] || stamps.twin_peaks;
+      const LANDSCAPE_STAMPS = {
+        black_lodge: {
+          ru: '★ СОВ. СЕКРЕТНО · СИНЯЯ КНИГА ★',
+          uk: '★ ЦІЛКОМ ТАЄМНО · СИНЯ КНИГА ★',
+          en: '★ TOP SECRET · BLUE BOOK ★'
+        },
+        twin_peaks: {
+          ru: 'ГРЕЙТ НОРТЕРН · СНОКУАЛМИ',
+          uk: 'ГРЕЙТ НОРТЕРН · СНОКВАЛМІ',
+          en: 'THE GREAT NORTHERN · SNOQUALMIE'
+        },
+        phangan: {
+          ru: 'КО ПХАНГАН · ЗАМЕТКА НА ЗАКАТЕ',
+          uk: 'КО ПХАНГАН · ЗАМІТКА НА ЗАХОДІ',
+          en: 'KOH PHANGAN · SUNSET NOTE'
+        },
+        banff: {
+          ru: 'ПОЛЕВОЙ ЖУРНАЛ БАНФ · 51°10′N',
+          uk: 'ПОЛЬОВИЙ ЖУРНАЛ БАНФ · 51°10′N',
+          en: 'BANFF FIELD LOG · 51°10′N'
+        },
+        kyoto: {
+          ru: 'КИОТО · АРАСИЯМА (ЗАМЕТКА ДЗЕН)',
+          uk: 'КІОТО · АРАСІЯМА (ЗАМІТКА ДЗЕН)',
+          en: '京都 · 嵐山 (ARASHIYAMA NOTE)'
+        },
+        iceland: {
+          ru: 'СТАНЦИЯ ИСЛАНДИЯ · 64°08′N 21°56′W',
+          uk: 'СТАНЦІЯ ІСЛАНДІЯ · 64°08′N 21°56′W',
+          en: 'STÖÐ · 64°08′N 21°56′W'
+        },
+        wadi_rum: {
+          ru: 'ВАДИ-РАМ · ЛУННАЯ ДОЛИНА',
+          uk: 'ВАДІ-РАМ · МІСЯЧНА ДОЛИНА',
+          en: 'WADI RUM · VALLEY OF THE MOON'
+        },
+        kerala: {
+          ru: 'МАЛАБАРСКИЙ БОТАНИЧЕСКИЙ · КОЧИН',
+          uk: 'МАЛАБАРСЬКИЙ БОТАНІЧНИЙ · КОЧИН',
+          en: 'MALABAR BOTANICAL · COCHIN'
+        }
+      };
+
+      function getLandscapeStamp(landscapeId, lang) {
+        const activeLang = (lang || currentLang || 'ru');
+        const entry = LANDSCAPE_STAMPS[landscapeId] || LANDSCAPE_STAMPS.twin_peaks;
+        return entry[activeLang] || entry.ru || entry.en;
+      }
+
+      const DEFAULT_STICKER_TEXTS = [
+        'Новая мысль или дело...',
+        'Нова думка або справа...',
+        'New thought or plan...',
+        'Быстрая мысль или задача...',
+        'Швидка думка або справа...',
+        'Quick task or thought...',
+        'Quick thought or task...'
+      ];
+
+      function getDefaultStickerText(lang) {
+        const activeLang = (lang || currentLang || 'ru');
+        if (activeLang === 'uk') return 'Нова думка або справа...';
+        if (activeLang === 'en') return 'New thought or plan...';
+        return 'Новая мысль или дело...';
+      }
+
+      function isDefaultStickerText(text) {
+        if (!text) return true;
+        const trimmed = text.trim();
+        return DEFAULT_STICKER_TEXTS.includes(trimmed);
+      }
+
+      function updateDefaultStickersLanguage(targetLang) {
+        if (!state.stickers || !state.stickers.length) return;
+        const newDefText = getDefaultStickerText(targetLang);
+        let changed = false;
+        state.stickers.forEach(s => {
+          if (isDefaultStickerText(s.text)) {
+            if (s.text !== newDefText) {
+              s.text = newDefText;
+              changed = true;
+              apiAction('update_sticker', { id: s.id, text: newDefText });
+            }
+          }
+        });
+        if (changed) {
+          saveLocal();
+        }
       }
 
       // --- Express Task Stickers on Scenic Screen ---
@@ -7803,8 +7879,16 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
+        updateDefaultStickersLanguage(currentLang);
+
         const currentLandscape = (typeof getCurrentLandscape === 'function' ? getCurrentLandscape() : 'twin_peaks');
-        const stampText = getLandscapeStamp(currentLandscape);
+        const stampText = getLandscapeStamp(currentLandscape, currentLang);
+        const t = I18N[currentLang] || I18N.ru;
+
+        const containerLabel = currentLang === 'uk'
+          ? 'Експрес-стікери завдань'
+          : (currentLang === 'en' ? 'Express task sticky notes' : 'Экспресс-стикеры задач');
+        container.setAttribute('aria-label', containerLabel);
 
         state.stickers.forEach((sticker, index) => {
           const el = document.createElement('div');
@@ -7815,12 +7899,18 @@ document.addEventListener('DOMContentLoaded', () => {
           el.style.transform = `rotate(${tilt}deg)`;
           el.setAttribute('data-id', sticker.id);
 
+          const chkLabel = currentLang === 'uk'
+            ? (sticker.completed ? 'Позначено виконаним' : 'Позначити виконаним')
+            : (currentLang === 'en'
+              ? (sticker.completed ? 'Completed' : 'Mark as completed')
+              : (sticker.completed ? 'Выполнено' : 'Отметить выполненным'));
+
           el.innerHTML = `
             <div class="sticker-pushpin" aria-hidden="true"></div>
-            <button type="button" class="sticker-delete-btn" title="${(I18N[currentLang] || I18N.ru).deleteStickerTitle || 'Удалить'}">×</button>
+            <button type="button" class="sticker-delete-btn" title="${t.deleteStickerTitle || 'Удалить'}">×</button>
             <div class="sticker-header-stamp">${stampText}</div>
             <div class="sticker-card-inner">
-              <button type="button" class="sticker-custom-check ${sticker.completed ? 'checked' : ''}" aria-label="Отметить выполненным">
+              <button type="button" class="sticker-custom-check ${sticker.completed ? 'checked' : ''}" aria-label="${chkLabel}">
                 <span class="sticker-check-icon">✓</span>
               </button>
               <div class="sticker-text" contenteditable="true" spellcheck="false">${esc(sticker.text)}</div>
@@ -7834,6 +7924,12 @@ document.addEventListener('DOMContentLoaded', () => {
             sticker.completed = !sticker.completed;
             chk.classList.toggle('checked', sticker.completed);
             el.classList.toggle('completed', sticker.completed);
+            const updatedLabel = currentLang === 'uk'
+              ? (sticker.completed ? 'Позначено виконаним' : 'Позначити виконаним')
+              : (currentLang === 'en'
+                ? (sticker.completed ? 'Completed' : 'Mark as completed')
+                : (sticker.completed ? 'Выполнено' : 'Отметить выполненным'));
+            chk.setAttribute('aria-label', updatedLabel);
             saveLocal();
             updateBadgeOverlay();
             apiAction('complete_sticker', { id: sticker.id, completed: sticker.completed });
@@ -7856,12 +7952,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Inline edit text
           const txt = el.querySelector('.sticker-text');
+          txt.addEventListener('focus', () => {
+            if (isDefaultStickerText(txt.textContent)) {
+              const range = document.createRange();
+              range.selectNodeContents(txt);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          });
           txt.addEventListener('blur', () => {
-            const newText = txt.textContent.trim();
-            if (newText && newText !== sticker.text) {
-              sticker.text = newText;
+            const trimmed = txt.textContent.trim();
+            if (!trimmed) {
+              const def = getDefaultStickerText(currentLang);
+              txt.textContent = def;
+              if (sticker.text !== def) {
+                sticker.text = def;
+                saveLocal();
+                apiAction('update_sticker', { id: sticker.id, text: def });
+              }
+            } else if (trimmed !== sticker.text) {
+              sticker.text = trimmed;
               saveLocal();
-              apiAction('update_sticker', { id: sticker.id, text: newText });
+              apiAction('update_sticker', { id: sticker.id, text: trimmed });
             }
           });
           txt.addEventListener('keydown', (e) => {
@@ -7876,10 +7989,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       function addNewSticker(initialText) {
-        const defaultText = currentLang === 'uk'
-          ? 'Нова думка або справа...'
-          : (currentLang === 'ru' ? 'Новая мысль или дело...' : 'New thought or plan...');
-        const text = initialText || defaultText;
+        const text = initialText || getDefaultStickerText(currentLang);
         const newStk = {
           id: `stk_${Date.now()}`,
           text: text,
