@@ -1,19 +1,39 @@
 name: build
 
-# Сборка под Windows идёт ЗДЕСЬ, а не на маке: ни PyInstaller, ни Rust не
-# кросс-компилируют .exe и .dll с macOS. Артефакт скачивается со страницы запуска.
+# Сборка идёт ЗДЕСЬ, а не на машине автора: ни PyInstaller, ни Rust не
+# кросс-компилируют — бинарник под каждую систему собирается на этой системе.
+# Тег `v*` собирает все три и складывает их в один релиз.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
 
-# Право создавать релиз и прикреплять к нему файл
+# Право создавать релиз и прикреплять к нему файлы
 permissions:
   contents: write
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      fail-fast: false        # macOS упал — Windows всё равно должен доехать
+      matrix:
+        include:
+          - os: windows-latest
+            asset: Diary.exe
+            built: dist/Diary.exe
+          # macos-latest — это Apple Silicon. Для Intel добавить строку с macos-13
+          # и asset Diary-macos-x86_64.
+          - os: macos-latest
+            asset: Diary-macos-arm64
+            built: dist/Diary
+          # Версия прибита, а не ubuntu-latest: бинарник тянет glibc той системы,
+          # где собран, и «latest» однажды молча сдвинет порог совместимости.
+          # 22.04 взять нельзя — GitHub начинает выводить его 17.09.2026 и снимает
+          # полностью к 17.04.2027. 24.04 = glibc 2.39.
+          - os: ubuntu-24.04
+            asset: Diary-linux-x86_64
+            built: dist/Diary
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,15 +46,28 @@ jobs:
           repository: vitaliyfedotovpro-art/astrum-hsam-embedded
           path: hsam
 
-      - name: Собрать HSAM как DLL
+      - name: Собрать HSAM динамической библиотекой
         working-directory: hsam
         run: cargo rustc --release --crate-type cdylib
 
-      - name: Положить DLL рядом с кодом
+      - name: Положить библиотеку рядом с кодом
         shell: bash
         run: |
           mkdir -p diary/lib
-          cp hsam/target/release/astrum_memory.dll diary/lib/
+          # Имя разное на каждой системе (.dll / .dylib / .so) — копируем по маске,
+          # чтобы не держать три ветки и не промахнуться мимо префикса lib.
+          found=0
+          for f in hsam/target/release/*astrum_memory*.dll \
+                   hsam/target/release/*astrum_memory*.dylib \
+                   hsam/target/release/*astrum_memory*.so; do
+            [ -f "$f" ] || continue
+            cp "$f" diary/lib/
+            found=1
+          done
+          if [ "$found" != "1" ]; then
+            echo "библиотека движка не собралась:"; ls -la hsam/target/release/ | head -30
+            exit 1
+          fi
           ls -la diary/lib/
 
       - uses: actions/setup-python@v5
@@ -49,33 +82,59 @@ jobs:
       - name: Сборка
         run: pyinstaller --clean --noconfirm diary.spec
 
-      - name: Проверить, что файл собрался
+      - name: Проверить, что файл собрался, и дать ему имя платформы
         shell: bash
         run: |
-          test -f dist/Diary.exe || (echo "Diary.exe не собран" && exit 1)
+          test -f "${{ matrix.built }}" || (echo "${{ matrix.built }} не собран"; ls -la dist/; exit 1)
+          mv "${{ matrix.built }}" "dist/${{ matrix.asset }}"
+          # На macOS и Linux бит запуска должен пережить путь до пользователя
+          chmod +x "dist/${{ matrix.asset }}" || true
           ls -la dist/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Diary-windows
-          path: dist/Diary.exe
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
           retention-days: 30
 
-      # Релиз с постоянной ссылкой на скачивание — только когда пушится тег,
-      # чтобы ручные запуски не плодили пустых релизов.
+      # Релиз — только на теге, чтобы ручные запуски не плодили пустых.
+      # Каждое задание прикладывает свой файл к одному и тому же релизу.
       - name: Опубликовать релиз
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Diary.exe
+          files: dist/${{ matrix.asset }}
           name: Diary ${{ github.ref_name }}
           body: |
-            Personal speaking diary — Windows build.
+            Personal speaking diary — download the file for your system.
 
-            **Download `Diary.exe` below and double-click it.** Nothing to install.
+            | system | file |
+            |---|---|
+            | Windows | `Diary.exe` |
+            | macOS (Apple Silicon) | `Diary-macos-arm64` |
+            | Linux (x86_64) | `Diary-linux-x86_64` |
 
-            On first launch Windows shows a blue "Windows protected your PC" screen —
-            the file isn't signed by a big company, that's all. Click **More info** →
-            **Run anyway**. It only asks once.
+            Nothing to install. The diary runs on your own machine and never
+            listens to the network — it opens a page at `127.0.0.1`.
 
-            The diary runs on your own machine and never listens to the network.
+            **Windows.** Double-click it. The first launch shows a blue
+            "Windows protected your PC" screen: the file isn't signed by a big
+            company, that's all. Click **More info** → **Run anyway**. Once only.
+
+            **macOS.** The file isn't notarised, so Gatekeeper will refuse it on a
+            double-click. Open a terminal in the folder you downloaded it to:
+
+            ```
+            chmod +x Diary-macos-arm64
+            xattr -d com.apple.quarantine Diary-macos-arm64
+            ./Diary-macos-arm64
+            ```
+
+            **Linux.** Built on Ubuntu 24.04; needs glibc 2.39 or newer
+            (Ubuntu 24.04+, Debian 13+, Fedora 40+). On older systems build from
+            source — see the README.
+
+            ```
+            chmod +x Diary-linux-x86_64
+            ./Diary-linux-x86_64
+            ```

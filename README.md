@@ -17,7 +17,18 @@ Windows may also ask whether the app can use your network — allow it. The diar
 to your machine only (`127.0.0.1`); the prompt is a standard one for anything that opens
 a local page.
 
-**macOS / Linux.** Build from source (below), or run `Diary` from a release.
+**macOS.** Download `Diary-macos-arm64` (Apple Silicon). It isn't notarised, so
+Gatekeeper refuses it on a double-click — open a terminal where you downloaded it:
+
+```
+chmod +x Diary-macos-arm64
+xattr -d com.apple.quarantine Diary-macos-arm64
+./Diary-macos-arm64
+```
+
+**Linux.** Download `Diary-linux-x86_64`, `chmod +x` it and run it. Built on
+Ubuntu 24.04, so it needs glibc 2.39 or newer — Ubuntu 24.04+, Debian 13+,
+Fedora 40+. On older distributions build from source instead (below).
 
 ## What it is
 
