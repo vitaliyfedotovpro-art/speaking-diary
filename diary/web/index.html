@@ -30,7 +30,7 @@
   <!-- Google Fonts with robust offline system fallbacks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..600;1,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400..600;1,400..600&family=Marck+Script&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* ==========================================================================
@@ -41,6 +41,8 @@
       --font-serif: 'Lora', 'Charter', 'Georgia', 'Iowan Old Style', 'Palatino', serif;
       --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+      --font-hand: 'Caveat', 'Marck Script', 'Segoe Print', 'Bradley Hand', cursive;
+      --font-typewriter: 'Courier Prime', 'Courier New', monospace;
 
       --radius-sm: 4px;
       --radius-md: 8px;
@@ -382,9 +384,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border-subtle);
+      gap: 16px;
+      padding: 12px 24px;
+      background: rgba(10, 14, 22, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px 16px 0 0;
+      box-sizing: border-box;
     }
 
     .selection-stats {
@@ -392,6 +399,79 @@
       color: var(--text-secondary);
       font-family: var(--font-mono);
       letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    /* Billing Counter Chip */
+    .billing-counter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.38);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .billing-counter-chip:hover {
+      border-color: var(--accent-gold);
+      background: rgba(212, 175, 55, 0.2);
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.32);
+      transform: translateY(-1px);
+    }
+
+    .billing-chip-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 7px #10B981;
+      flex-shrink: 0;
+      transition: background 300ms ease, box-shadow 300ms ease;
+    }
+
+    .billing-chip-indicator.warning {
+      background: #F59E0B;
+      box-shadow: 0 0 7px #F59E0B;
+    }
+
+    .billing-chip-indicator.danger {
+      background: #EF4444;
+      box-shadow: 0 0 7px #EF4444;
+    }
+
+    .billing-chip-section {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .billing-chip-label {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .billing-chip-val {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .billing-chip-val.today {
+      color: var(--accent-gold);
+    }
+
+    .billing-chip-divider {
+      opacity: 0.35;
+      margin: 0 3px;
+      color: var(--text-muted);
     }
 
     .selection-actions {
@@ -432,13 +512,38 @@
 
     /* ── Day Mode (Light Theme) UI Polish ───────────────────────────── */
     html[data-theme="light"] .selection-footer {
-      background: rgba(255, 255, 255, 0.78);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border-top: 1px solid rgba(255, 255, 255, 0.95);
       border-radius: 16px 16px 0 0;
       padding: 12px 28px 14px;
       box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .billing-counter-chip {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(180, 140, 60, 0.45);
+      color: #1F2937;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .billing-counter-chip:hover {
+      background: #FFFFFF;
+      border-color: #B8860B;
+      box-shadow: 0 2px 14px rgba(212, 175, 55, 0.3);
+    }
+
+    html[data-theme="light"] .billing-chip-val {
+      color: #111827;
+    }
+
+    html[data-theme="light"] .billing-chip-val.today {
+      color: #B45309;
+    }
+
+    html[data-theme="light"] .billing-chip-label {
+      color: #6B7280;
     }
 
     html[data-theme="light"] .selection-stats {
@@ -1439,10 +1544,10 @@
 
     #reactorCanvas {
       position: absolute;
-      inset: -15%;
-      width: 130%;
-      height: 130%;
-      border-radius: 50%;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      border-radius: 0;
       z-index: 3;
       pointer-events: none;
     }
@@ -2005,6 +2110,1042 @@
 
     .modal-backdrop.hidden .settings-modal {
       transform: translateY(16px);
+    }
+
+    /* ─── BILLING MODAL SPECIFICS ───────────────────────────────────────── */
+    .billing-modal {
+      max-width: 620px;
+      max-height: 90vh;
+      padding: 22px 28px 24px;
+      gap: 14px;
+    }
+
+    .billing-hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 540px) {
+      .billing-hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .billing-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .billing-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .billing-card-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .billing-card-number {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      margin: 2px 0;
+    }
+
+    .billing-card-number.today-num {
+      color: var(--accent-gold);
+    }
+
+    .billing-card-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .billing-topup-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-topup-quick {
+      background: var(--accent-gold-soft);
+      border: 1px solid var(--border-zari);
+      border-radius: var(--radius-sm);
+      color: var(--accent-gold);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 7px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-topup-quick:hover {
+      background: var(--accent-gold);
+      color: #080C14;
+    }
+
+    .billing-breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .billing-breakdown-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .billing-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .billing-item-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .billing-item-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .billing-item-desc {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .billing-item-amount {
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--accent-gold);
+      text-align: right;
+    }
+
+    .billing-calc-note {
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px dashed var(--border-zari);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .billing-footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .currency-pill-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+
+    .currency-pill-btn.active {
+      background: var(--accent-gold);
+      color: #080C14;
+      border-color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    /* ─── THE THEMED DESK CALENDAR (CENTER SHELF ARTIFACT) ───────────────── */
+    .calendar-card {
+      pointer-events: auto;
+      position: relative;
+      width: clamp(140px, 18vw, 205px);
+      height: clamp(140px, 18vw, 205px);
+      max-height: calc(50vh - 84px);
+      max-width: calc(50vh - 84px);
+      aspect-ratio: 1 / 1;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      outline: none;
+      user-select: none;
+      -webkit-user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), filter 340ms cubic-bezier(0.16, 1, 0.3, 1);
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.65));
+    }
+
+    .calendar-card:focus-visible {
+      outline: 2px solid var(--accent-gold);
+      outline-offset: 8px;
+    }
+
+    .calendar-card:hover {
+      transform: translateY(-8px) scale(1.05);
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+    }
+
+    .calendar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      transition: opacity 280ms ease, transform 340ms ease;
+    }
+
+    .calendar-badge-overlay {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(14, 20, 28, 0.88);
+      border: 1px solid var(--border-zari, rgba(212, 175, 55, 0.5));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 9999px;
+      padding: 3px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      white-space: nowrap;
+      transition: transform 240ms ease;
+    }
+
+    html[data-theme="light"] .calendar-badge-overlay {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(180, 140, 60, 0.45);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    .calendar-card:hover .calendar-badge-overlay {
+      transform: translateX(-50%) scale(1.08);
+      border-color: var(--accent-gold);
+    }
+
+    .calendar-badge-date {
+      font-family: var(--font-mono, monospace);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-gold, #D4AF37);
+      letter-spacing: 0.04em;
+    }
+
+    .calendar-badge-sep {
+      color: var(--text-muted, #8A99AD);
+      font-size: 10px;
+    }
+
+    .calendar-badge-count {
+      font-family: var(--font-mono, monospace);
+      font-size: 10.5px;
+      color: var(--text-primary, #EDE8DF);
+      opacity: 0.95;
+    }
+
+    html[data-theme="light"] .calendar-badge-count {
+      color: #1F2937;
+    }
+
+    /* ─── EXPRESS STICKERS PINBOARD ON MAIN SCREEN ────────────────────────── */
+    .express-stickers-container {
+      position: absolute;
+      top: clamp(20px, 4vh, 40px);
+      left: clamp(24px, 5vw, 60px);
+      right: clamp(24px, 5vw, 60px);
+      max-height: calc(46vh - 30px);
+      pointer-events: none;
+      z-index: 6;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: flex-start;
+      justify-content: flex-start;
+      overflow: visible;
+    }
+
+    .express-sticker {
+      pointer-events: auto;
+      width: clamp(210px, 16vw, 260px);
+      min-height: 104px;
+      padding: 18px 14px 12px;
+      border-radius: 2px 2px 3px 3px;
+      position: relative;
+      /* Realistic physical paper card shadow cast onto surface */
+      box-shadow: 0 16px 30px -4px rgba(0, 0, 0, 0.58), 0 5px 12px rgba(0, 0, 0, 0.38), 0 0 1px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 240ms ease;
+      cursor: default;
+      user-select: text;
+    }
+
+    .express-sticker:hover {
+      transform: translateY(-4px) scale(1.03) !important;
+      box-shadow: 0 24px 44px -6px rgba(0, 0, 0, 0.72), 0 8px 18px rgba(0, 0, 0, 0.45);
+      z-index: 10;
+    }
+
+    /* ── 3D Pushpin (Spherical dome tack like reference photo) ── */
+    .sticker-pushpin {
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      z-index: 4;
+      pointer-events: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Central indentation / pin core */
+    .sticker-pushpin::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.7), 0 0.5px 0.5px rgba(255, 255, 255, 0.35);
+    }
+
+    /* Contact shadow of pushpin cast onto paper */
+    .sticker-pushpin::after {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0) 75%);
+      z-index: -1;
+    }
+
+    /* ── Card Header Stamp (Atmosphere Letterhead) ── */
+    .sticker-header-stamp {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(0, 0, 0, 0.16);
+      user-select: none;
+      pointer-events: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.75;
+    }
+
+    /* ── Card Content (Checkbox + Note Text) ── */
+    .sticker-card-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      flex: 1;
+    }
+
+    /* Hand-drawn checkbox */
+    .sticker-custom-check {
+      width: 17px;
+      height: 17px;
+      border-radius: 3px;
+      border: 1.5px solid currentColor;
+      background: rgba(255, 255, 255, 0.45);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 3px;
+      padding: 0;
+      opacity: 0.75;
+      transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+    }
+
+    .sticker-custom-check:hover {
+      opacity: 1;
+      transform: scale(1.1);
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .sticker-custom-check .sticker-check-icon {
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease;
+      color: currentColor;
+    }
+
+    .sticker-custom-check.checked .sticker-check-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .sticker-custom-check.checked {
+      opacity: 0.95;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Handwritten Note Text (NO BLUE OUTLINES!) */
+    .express-sticker .sticker-text {
+      font-family: var(--font-hand), 'Caveat', cursive, sans-serif;
+      font-size: 19px;
+      line-height: 1.35;
+      color: inherit;
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      word-break: break-word;
+      flex: 1;
+      -webkit-user-modify: read-write-plaintext-only;
+      user-select: text;
+      -webkit-user-select: text;
+      caret-color: currentColor;
+    }
+
+    .express-sticker .sticker-text:focus,
+    .express-sticker .sticker-text:focus-visible,
+    .express-sticker .sticker-text:focus-within {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .express-sticker.completed .sticker-text {
+      text-decoration: line-through;
+      opacity: 0.48;
+    }
+
+    /* Subtle delete button */
+    .sticker-delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 7px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: currentColor;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      transition: opacity 180ms ease, background 180ms ease, transform 180ms ease;
+      z-index: 5;
+    }
+
+    .express-sticker:hover .sticker-delete-btn {
+      opacity: 0.55;
+    }
+
+    .sticker-delete-btn:hover {
+      opacity: 1 !important;
+      transform: scale(1.15);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    /* ─── 8 ATMOSPHERIC STYLES FOR STICKERS & PUSHPINS ─────────────────── */
+
+    /* 1. Twin Peaks (Great Northern Hotel Guest Memo) */
+    html[data-landscape="twin_peaks"] .express-sticker,
+    .express-sticker.style-twin_peaks {
+      background: linear-gradient(175deg, #FFFDF8 0%, #F5ECE0 50%, #ECE1D1 100%);
+      color: #241A12;
+      border: 1px solid rgba(140, 110, 80, 0.25);
+    }
+    html[data-landscape="twin_peaks"] .sticker-pushpin,
+    .express-sticker.style-twin_peaks .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #FF6B6B 0%, #DC2626 28%, #991B1B 65%, #450A0A 100%);
+      border: 1px solid rgba(120, 15, 15, 0.7);
+    }
+    html[data-landscape="twin_peaks"] .sticker-header-stamp,
+    .express-sticker.style-twin_peaks .sticker-header-stamp {
+      color: #8C2626;
+      border-color: rgba(140, 38, 38, 0.25);
+    }
+
+    /* 2. Koh Phangan (Tropical Coconut/Banana Fiber Paper) */
+    html[data-landscape="phangan"] .express-sticker,
+    .express-sticker.style-phangan {
+      background: linear-gradient(175deg, #FAF7ED 0%, #EFE5D2 50%, #E2D4BD 100%);
+      color: #1A2823;
+      border: 1px solid rgba(160, 140, 105, 0.28);
+    }
+    html[data-landscape="phangan"] .sticker-pushpin,
+    .express-sticker.style-phangan .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #67E8F9 0%, #06B6D4 30%, #0891B2 65%, #164E63 100%);
+      border: 1px solid rgba(14, 116, 144, 0.7);
+    }
+    html[data-landscape="phangan"] .sticker-header-stamp,
+    .express-sticker.style-phangan .sticker-header-stamp {
+      color: #0F766E;
+      border-color: rgba(15, 118, 110, 0.25);
+    }
+
+    /* 3. Banff (Canadian Rockies Field Log) */
+    html[data-landscape="banff"] .express-sticker,
+    .express-sticker.style-banff {
+      background: linear-gradient(175deg, #FAF8F2 0%, #ECE7DB 50%, #DFD9CB 100%);
+      color: #152224;
+      border: 1px solid rgba(110, 140, 140, 0.28);
+    }
+    html[data-landscape="banff"] .sticker-pushpin,
+    .express-sticker.style-banff .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #86EFAC 0%, #22C55E 28%, #15803D 65%, #052E16 100%);
+      border: 1px solid rgba(21, 128, 61, 0.7);
+    }
+    html[data-landscape="banff"] .sticker-header-stamp,
+    .express-sticker.style-banff .sticker-header-stamp {
+      color: #1E828A;
+      border-color: rgba(30, 130, 138, 0.25);
+    }
+
+    /* 4. Kyoto (Tanzaku Washi Mulberry Paper) */
+    html[data-landscape="kyoto"] .express-sticker,
+    .express-sticker.style-kyoto {
+      background: linear-gradient(175deg, #FCFAF4 0%, #F1ECE0 50%, #E5DFD0 100%);
+      color: #1A1814;
+      border: 1px solid rgba(150, 130, 105, 0.25);
+    }
+    html[data-landscape="kyoto"] .sticker-pushpin,
+    .express-sticker.style-kyoto .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #FCA5A5 0%, #DC2626 28%, #991B1B 65%, #450A0A 100%);
+      border: 1px solid rgba(153, 27, 27, 0.7);
+    }
+    html[data-landscape="kyoto"] .sticker-header-stamp,
+    .express-sticker.style-kyoto .sticker-header-stamp {
+      color: #A93226;
+      font-family: var(--font-serif);
+      border-color: rgba(169, 50, 38, 0.25);
+    }
+    html[data-landscape="kyoto"] .express-sticker .sticker-text,
+    .express-sticker.style-kyoto .sticker-text {
+      font-family: 'Marck Script', var(--font-hand), cursive;
+      font-size: 20px;
+    }
+
+    /* 5. Iceland (Glacial Meteorological Station Card) */
+    html[data-landscape="iceland"] .express-sticker,
+    .express-sticker.style-iceland {
+      background: linear-gradient(175deg, #F8FAFC 0%, #EBF1F6 50%, #DCE6F0 100%);
+      color: #0F172A;
+      border: 1px solid rgba(120, 145, 175, 0.3);
+    }
+    html[data-landscape="iceland"] .sticker-pushpin,
+    .express-sticker.style-iceland .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #E2E8F0 25%, #94A3B8 60%, #334155 100%);
+      border: 1px solid rgba(100, 116, 139, 0.7);
+    }
+    html[data-landscape="iceland"] .sticker-header-stamp,
+    .express-sticker.style-iceland .sticker-header-stamp {
+      color: #334155;
+      border-color: rgba(51, 65, 85, 0.25);
+    }
+
+    /* 6. Wadi Rum (Sunbaked Desert Sandstone Card) */
+    html[data-landscape="wadi_rum"] .express-sticker,
+    .express-sticker.style-wadi_rum {
+      background: linear-gradient(175deg, #FAF3E8 0%, #EFE1CE 50%, #E2D0BA 100%);
+      color: #2D1B13;
+      border: 1px solid rgba(180, 125, 85, 0.28);
+    }
+    html[data-landscape="wadi_rum"] .sticker-pushpin,
+    .express-sticker.style-wadi_rum .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #FDE68A 0%, #F59E0B 28%, #B45309 65%, #451A03 100%);
+      border: 1px solid rgba(180, 83, 9, 0.7);
+    }
+    html[data-landscape="wadi_rum"] .sticker-header-stamp,
+    .express-sticker.style-wadi_rum .sticker-header-stamp {
+      color: #C15C3D;
+      border-color: rgba(193, 92, 61, 0.25);
+    }
+
+    /* 7. Kerala (Malabar Spice Botanical Herbarium Card) */
+    html[data-landscape="kerala"] .express-sticker,
+    .express-sticker.style-kerala {
+      background: linear-gradient(175deg, #FCF8ED 0%, #F2E8D1 50%, #E5D7B9 100%);
+      color: #221A0F;
+      border: 1px solid rgba(180, 140, 65, 0.3);
+    }
+    html[data-landscape="kerala"] .sticker-pushpin,
+    .express-sticker.style-kerala .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #FEF08A 0%, #EAB308 28%, #A16207 65%, #422006 100%);
+      border: 1px solid rgba(161, 98, 7, 0.7);
+    }
+    html[data-landscape="kerala"] .sticker-header-stamp,
+    .express-sticker.style-kerala .sticker-header-stamp {
+      color: #8C6207;
+      border-color: rgba(140, 98, 7, 0.25);
+    }
+    html[data-landscape="kerala"] .express-sticker .sticker-text,
+    .express-sticker.style-kerala .sticker-text {
+      font-family: 'Marck Script', var(--font-hand), cursive;
+      font-size: 20px;
+    }
+
+    /* 8. Black Lodge (Classified 1968 Project Blue Book Dossier Card) */
+    html[data-landscape="black_lodge"] .express-sticker,
+    .express-sticker.style-black_lodge {
+      background: linear-gradient(175deg, #F4EEDC 0%, #E8DFCB 50%, #DDD1B8 100%);
+      color: #151310;
+      border: 1.5px solid rgba(183, 28, 28, 0.45);
+    }
+    html[data-landscape="black_lodge"] .sticker-pushpin,
+    .express-sticker.style-black_lodge .sticker-pushpin {
+      background: radial-gradient(circle at 35% 30%, #94A3B8 0%, #475569 30%, #1E293B 70%, #020617 100%);
+      border: 1px solid rgba(15, 23, 42, 0.85);
+    }
+    html[data-landscape="black_lodge"] .sticker-header-stamp,
+    .express-sticker.style-black_lodge .sticker-header-stamp {
+      color: #B71C1C;
+      font-family: var(--font-typewriter);
+      font-weight: 800;
+      font-size: 8px;
+      border-bottom: 1.5px solid rgba(183, 28, 28, 0.4);
+      letter-spacing: 0.9px;
+    }
+    html[data-landscape="black_lodge"] .express-sticker .sticker-text,
+    .express-sticker.style-black_lodge .sticker-text {
+      font-family: var(--font-typewriter), monospace;
+      font-size: 13.5px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    /* ─── CALENDAR & AGENDA STUDIO MODAL ─────────────────────────────────── */
+    .calendar-modal {
+      max-width: 820px !important;
+      max-height: 88vh;
+      padding: 22px 28px 24px;
+      gap: 14px;
+    }
+
+    .calendar-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .calendar-month-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cal-nav-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all var(--transition-fast);
+    }
+    .cal-nav-btn:hover {
+      background: var(--accent-gold);
+      color: #080C14;
+      border-color: var(--accent-gold);
+    }
+
+    .cal-month-heading {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-bright);
+      min-width: 140px;
+      text-align: center;
+    }
+
+    .cal-today-pill {
+      background: var(--accent-gold-soft);
+      border: 1px solid var(--border-zari);
+      color: var(--accent-gold);
+      border-radius: var(--radius-full);
+      padding: 3px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all var(--transition-fast);
+    }
+    .cal-today-pill:hover {
+      background: var(--accent-gold);
+      color: #080C14;
+    }
+
+    .calendar-tool-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cal-action-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+    }
+    .cal-action-btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+    .cal-action-btn.primary {
+      background: var(--accent-gold);
+      color: #080C14;
+      border-color: var(--accent-gold);
+      font-weight: 600;
+    }
+    .cal-action-btn.primary:hover {
+      background: #E5C378;
+    }
+    .cal-action-btn.gcal {
+      background: rgba(66, 133, 244, 0.15);
+      border-color: rgba(66, 133, 244, 0.4);
+      color: #4285F4;
+    }
+    .cal-action-btn.gcal:hover {
+      background: #4285F4;
+      color: #FFFFFF;
+    }
+
+    .calendar-studio-body {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+      min-height: 380px;
+    }
+
+    @media (max-width: 680px) {
+      .calendar-studio-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .calendar-month-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-bottom: 4px;
+    }
+
+    .calendar-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-day-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      position: relative;
+      transition: all var(--transition-fast);
+    }
+    .cal-day-cell:hover {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: var(--border-zari);
+    }
+    .cal-day-cell.other-month {
+      opacity: 0.28;
+    }
+    .cal-day-cell.today {
+      border-color: var(--accent-gold);
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+    .cal-day-cell.selected {
+      background: var(--accent-gold) !important;
+      color: #080C14 !important;
+      font-weight: 700;
+    }
+    .cal-day-cell.has-events::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-gold);
+    }
+    .cal-day-cell.selected.has-events::after {
+      background: #080C14;
+    }
+
+    .calendar-sync-bar {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .cal-sync-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+    }
+    .cal-sync-pill:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .calendar-agenda-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      max-height: 420px;
+    }
+
+    .calendar-selected-date-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+    .calendar-selected-weekday {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+    .calendar-selected-fulldate {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .calendar-events-badge {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: var(--accent-gold-soft);
+      color: var(--accent-gold);
+      border: 1px solid var(--border-zari);
+      border-radius: var(--radius-full);
+      padding: 2px 8px;
+    }
+
+    .cal-event-creator {
+      background: rgba(212, 175, 55, 0.06);
+      border: 1px solid var(--border-zari);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      margin-bottom: 6px;
+    }
+    .cal-creator-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .calendar-agenda-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .calendar-event-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 8px;
+      transition: all var(--transition-fast);
+    }
+    .calendar-event-card:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(212, 175, 55, 0.35);
+    }
+    .calendar-event-time {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--accent-gold);
+      font-weight: 600;
+      white-space: nowrap;
+      min-width: 50px;
+      padding-top: 2px;
+    }
+    .calendar-event-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .calendar-event-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+    .calendar-event-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .calendar-event-tag {
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(212, 175, 55, 0.12);
+      color: var(--accent-gold);
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .calendar-event-notes {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+    .calendar-event-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cal-event-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+    .cal-event-btn.gcal {
+      color: #38BDF8;
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .cal-event-btn.gcal:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38BDF8;
+      color: #BAE6FD;
+    }
+    .cal-event-btn.del {
+      color: var(--text-muted);
+      font-size: 14px;
+      padding: 2px 7px;
+    }
+    .cal-event-btn.del:hover {
+      color: #EF4444;
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.35);
     }
 
     .modal-header {
@@ -2963,6 +4104,81 @@
       --reactor-glow-outer: #E58C2B;
     }
 
+    /* 8. SECRET THEME: THE BLACK LODGE & PROJECT BLUE BOOK ("judy") */
+    html[data-landscape="black_lodge"] {
+      --landscape-bg: url('bg_black_lodge.jpg');
+      --paper-bg: #EAE6DF;
+      --paper-blend: multiply;
+      --text-on-paper: #0E1624;
+      --text-diary-on-paper: #16243C;
+      --accent-landscape: #B71C1C;
+      --accent-gold: #E5C378;
+      --border-zari: rgba(183, 28, 28, 0.55);
+      --bookmark-color: #1A3464;
+      --reactor-glow-core: #FFD166;
+      --reactor-glow-outer: #B71C1C;
+    }
+
+    @keyframes judyUnlockFlash {
+      0% { filter: brightness(1) contrast(1); }
+      20% { filter: brightness(2.4) contrast(1.8) hue-rotate(-25deg); }
+      40% { filter: brightness(0.2) invert(0.85); }
+      70% { filter: brightness(1.7) sepia(0.65) hue-rotate(320deg); }
+      100% { filter: brightness(1) contrast(1); }
+    }
+
+    .judy-unlock-anim {
+      animation: judyUnlockFlash 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .judy-unlock-banner {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, rgba(183, 28, 28, 0.5) 0%, rgba(10, 4, 6, 0.95) 75%);
+      backdrop-filter: blur(14px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+    }
+
+    .judy-unlock-banner.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .judy-banner-title {
+      font-family: var(--font-serif);
+      font-size: clamp(26px, 4.8vw, 52px);
+      font-weight: 700;
+      color: #FFFFFF;
+      text-shadow: 0 0 20px #B71C1C, 0 0 45px #FF5252, 0 0 70px #B71C1C;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      text-align: center;
+      animation: judyPulse 1.6s ease-in-out infinite alternate;
+    }
+
+    .judy-banner-sub {
+      font-family: var(--font-mono);
+      font-size: clamp(12px, 1.8vw, 15px);
+      color: #E5C378;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      opacity: 0.95;
+      text-shadow: 0 0 10px rgba(229, 195, 120, 0.5);
+    }
+
+    @keyframes judyPulse {
+      0% { transform: scale(0.98); opacity: 0.9; }
+      100% { transform: scale(1.02); opacity: 1; }
+    }
+
     /* Dynamic background update */
     .bg-nature-backdrop {
       background-image: var(--landscape-bg) !important;
@@ -3463,10 +4679,25 @@ document.addEventListener('DOMContentLoaded', () => {
     <main class="screen-view selection-container" id="selectionScreen" role="main" aria-label="Diary Threshold Selection">
       <div class="selection-header-empty" aria-hidden="true"></div>
 
+      <!-- Express Task Stickers Pinboard on Scenic Main Screen -->
+      <div class="express-stickers-container" id="expressStickersArea" aria-label="Express task sticky notes">
+        <!-- Rendered dynamically by diaryCalendar -->
+      </div>
+
       <div class="selection-stage">
         <!-- OBJECT 1: CLOSED DESIGNER NOTEBOOK (PHOTOREALISTIC) -->
         <button class="book-card" id="bookObject" type="button" aria-label="Open Notebook Journal">
           <img src="book_twin_peaks.png" alt="Closed Luxury Designer Notebook" class="book-img" id="bookImg">
+        </button>
+
+        <!-- OBJECT 3: THEMED DESK CALENDAR (CENTER) -->
+        <button class="calendar-card" id="calendarObject" type="button" aria-label="Open Calendar & Schedule" title="Открыть календарь и расписание">
+          <img src="calendar_twin_peaks.png" alt="Themed Desk Calendar" class="calendar-img" id="calendarImg">
+          <div class="calendar-badge-overlay" id="calendarBadgeOverlay">
+            <span class="calendar-badge-date" id="calendarBadgeDate">12 SEP</span>
+            <span class="calendar-badge-sep">·</span>
+            <span class="calendar-badge-count" id="calendarBadgeCount">0 дел</span>
+          </div>
         </button>
 
         <!-- OBJECT 2: ARC REACTOR HARDWARE RIG (PHOTOREALISTIC) -->
@@ -3479,8 +4710,26 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="selection-stats" id="selectionStats">
           Loading reflection archives...
         </div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="reactorNotice"></div>
+        <div style="display:none;" id="reactorNotice"></div>
+
+        <!-- Billing & Daily Spend Counter Chip -->
+        <button class="billing-counter-chip" id="billingCounterChip" type="button" title="Нажмите для просмотра расходов и баланса" aria-label="Состояние счёта и расходы за день">
+          <span class="billing-chip-indicator" id="billingChipIndicator"></span>
+          <span class="billing-chip-section">
+            <span class="billing-chip-label" id="billingChipBalLabel">Счёт:</span>
+            <span class="billing-chip-val" id="billingChipBalance">$20.00</span>
+          </span>
+          <span class="billing-chip-divider">·</span>
+          <span class="billing-chip-section">
+            <span class="billing-chip-label" id="billingChipTodayLabel">Сегодня:</span>
+            <span class="billing-chip-val today" id="billingChipToday">$0.00</span>
+          </span>
+        </button>
+
         <div class="selection-actions">
+          <button class="btn-icon-subtle sticker-add-btn" id="btnAddExpressStickerBtn" type="button" title="Прикрепить экспресс-стикер на экран" aria-label="Прикрепить экспресс-стикер">
+            <span style="font-size:13px;">📌</span>
+          </button>
           <button class="btn-icon-subtle lang-toggle-btn" id="langToggleBtn" type="button" title="Switch to English" aria-label="Switch to English">EN</button>
           <button class="btn-icon-subtle" id="themeToggleBtn" type="button" title="Toggle Theme" aria-label="Toggle Theme">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -3516,6 +4765,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-icon-subtle" id="notebookThemeToggleBtn" type="button" title="Toggle Theme" aria-label="Toggle Theme">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          <button class="btn-icon-subtle" id="notebookCalendarBtn" type="button" title="Календарь и расписание" aria-label="Открыть календарь и расписание">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
           </button>
           <button class="btn-icon-subtle" id="notebookSettingsBtn" type="button" title="Open Settings" aria-label="Open Settings">
@@ -3650,6 +4907,247 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 
   <!-- ======================================================================
+       BILLING & USAGE MODAL (ACCOUNT BALANCE & DAILY SPEND)
+       ====================================================================== -->
+  <div class="modal-backdrop hidden" id="billingModalBackdrop" aria-hidden="true">
+    <div class="settings-modal billing-modal" id="billingModal" role="dialog" aria-modal="true" aria-labelledby="billingModalTitle">
+      <div class="ola-binding" aria-hidden="true" title="Decorative binding eyelet"></div>
+      
+      <!-- Modal Header -->
+      <header class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-badge-row">
+            <span class="modal-kolam-glyph" aria-hidden="true"></span>
+            <span class="settings-subline" id="billingSubline">Preferences & Intelligence</span>
+          </div>
+          <h2 id="billingModalTitle">Состояние счёта и расходы</h2>
+        </div>
+        <button type="button" class="btn-modal-close" id="closeBillingModalBtn" aria-label="Закрыть окно (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        
+        <!-- Hero Cards Grid -->
+        <div class="billing-hero-grid">
+          <div class="billing-card">
+            <div class="billing-card-header">
+              <span id="billingModalBalHeader">Остаток на счёте</span>
+              <span class="billing-card-status" id="billingCardStatus">
+                <span id="billingStatusDot" style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block;"></span>
+                <span id="billingCardStatusText">Активен</span>
+              </span>
+            </div>
+            <div class="billing-card-number" id="billingModalBalNum">$20.00</div>
+            <div class="billing-card-sub" id="billingModalBalSub"><span id="billingModalInitLabel">Установленный депозит:</span> <span id="billingModalInitVal">$20.00</span></div>
+            
+            <div class="billing-topup-row">
+              <span style="font-size:11px;color:var(--text-muted);" id="billingTopupQuickLabel">Пополнить:</span>
+              <button type="button" class="btn-topup-quick" onclick="window.diaryBilling && window.diaryBilling.topUp(10)">+$10</button>
+              <button type="button" class="btn-topup-quick" onclick="window.diaryBilling && window.diaryBilling.topUp(20)">+$20</button>
+              <button type="button" class="btn-topup-quick" onclick="window.diaryBilling && window.diaryBilling.topUp(50)">+$50</button>
+              <button type="button" class="btn-topup-quick" id="btnCustomBalance" style="margin-left:auto;">Изменить</button>
+            </div>
+          </div>
+
+          <div class="billing-card">
+            <div class="billing-card-header">
+              <span id="billingModalTodayHeader">Потрачено сегодня</span>
+              <span style="font-size:11px;font-family:var(--font-mono);color:var(--accent-gold);" id="billingModalTodayDate">12.09.2026</span>
+            </div>
+            <div class="billing-card-number today-num" id="billingModalTodayNum">$0.00</div>
+            <div class="billing-card-sub" id="billingModalTotalSub"><span id="billingModalTotalLabel">Всего израсходовано:</span> <span id="billingModalTotalVal">$0.00</span></div>
+          </div>
+        </div>
+
+        <!-- Breakdown List -->
+        <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;" id="billingBreakdownTitle">
+          Детализация расходов за сегодня
+        </div>
+
+        <div class="billing-breakdown-list">
+          <div class="billing-breakdown-item">
+            <div class="billing-item-left">
+              <div class="billing-item-icon">🎙️</div>
+              <div>
+                <div class="billing-item-title" id="billingLiveTitle">Gemini Live API (Чайник / Реактор)</div>
+                <div class="billing-item-desc" id="billingLiveDesc">0 сек аудио (0 токенов)</div>
+              </div>
+            </div>
+            <div class="billing-item-amount" id="billingLiveCost">$0.00</div>
+          </div>
+
+          <div class="billing-breakdown-item">
+            <div class="billing-item-left">
+              <div class="billing-item-icon">📻</div>
+              <div>
+                <div class="billing-item-title" id="billingWalkieTitle">Рация (Groq Whisper + Gemini TTS)</div>
+                <div class="billing-item-desc" id="billingWalkieDesc">0 реплик</div>
+              </div>
+            </div>
+            <div class="billing-item-amount" id="billingWalkieCost">$0.00</div>
+          </div>
+
+          <div class="billing-breakdown-item">
+            <div class="billing-item-left">
+              <div class="billing-item-icon">💬</div>
+              <div>
+                <div class="billing-item-title" id="billingChatTitle">Записи в дневнике (Gemini Flash)</div>
+                <div class="billing-item-desc" id="billingChatDesc">0 диалогов</div>
+              </div>
+            </div>
+            <div class="billing-item-amount" id="billingChatCost">$0.00</div>
+          </div>
+        </div>
+
+        <!-- Tariff Hint Note -->
+        <div class="billing-calc-note" id="billingTariffNote">
+          💡 <strong>Тарифная памятка</strong>: 1 час непрерывного разговора в живом режиме (Live API) обходится приблизительно в <strong>$0.72 – $0.85</strong> (входящий звук $3/1M токенов, ответы модели $12/1M токенов). В режиме рации на бесплатных тарифах Groq + Google AI Studio общение полностью бесплатно.
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="billing-footer-actions">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;color:var(--text-muted);" id="billingCurrencyLabel">Валюта:</span>
+            <button type="button" class="currency-pill-btn active" id="btnCurrUSD">USD ($)</button>
+            <button type="button" class="currency-pill-btn" id="btnCurrRUB">RUB (₽)</button>
+          </div>
+          <button type="button" class="btn-topup-quick" id="btnResetBillingStats" style="color:var(--text-muted);border-color:var(--border-subtle);background:transparent;">
+            Сбросить счётчики
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       CALENDAR & AGENDA STUDIO MODAL (GOOGLE CALENDAR SYNC & VOICE TASKS)
+       ====================================================================== -->
+  <div class="modal-backdrop hidden" id="calendarModalBackdrop" aria-hidden="true">
+    <div class="settings-modal calendar-modal" id="calendarModal" role="dialog" aria-modal="true" aria-labelledby="calendarModalTitle">
+      <div class="ola-binding" aria-hidden="true" title="Binding eyelet"></div>
+      
+      <!-- Modal Header -->
+      <header class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-badge-row">
+            <span class="modal-kolam-glyph" aria-hidden="true"></span>
+            <span class="settings-subline" id="calendarSubline">Google Calendar Sync & Voice Tasks</span>
+          </div>
+          <h2 id="calendarModalTitle">Календарь и расписание</h2>
+        </div>
+        <button type="button" class="btn-modal-close" id="closeCalendarModalBtn" aria-label="Закрыть календарь (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Calendar Toolbar & Actions -->
+      <div class="calendar-toolbar">
+        <div class="calendar-month-nav">
+          <button type="button" class="cal-nav-btn" id="calPrevMonthBtn" title="Предыдущий месяц">◀</button>
+          <span class="cal-month-heading" id="calMonthHeading">Сентябрь 2026</span>
+          <button type="button" class="cal-nav-btn" id="calNextMonthBtn" title="Следующий месяц">▶</button>
+          <button type="button" class="cal-today-pill" id="calTodayBtn">Сегодня</button>
+        </div>
+        <div class="calendar-tool-actions">
+          <button type="button" class="cal-action-btn" id="calSpeakAgendaBtn" title="Озвучить расписание голосом">
+            <span>🔊</span>
+            <span id="calSpeakBtnText">Озвучить планы</span>
+          </button>
+          <button type="button" class="cal-action-btn primary" id="calOpenNewEventBtn">
+            <span>➕</span>
+            <span id="calAddEventBtnText">Добавить дело</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Calendar Studio Layout: Grid + Day Schedule -->
+      <div class="calendar-studio-body">
+        <!-- Left: Month Grid -->
+        <div class="calendar-month-panel">
+          <div class="calendar-weekdays" id="calWeekdaysRow">
+            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+          </div>
+          <div class="calendar-days-grid" id="calDaysGrid">
+            <!-- Rendered by JS -->
+          </div>
+          
+          <!-- Bottom Sync & Export Bar -->
+          <div class="calendar-sync-bar">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;" id="calSyncTitle">Синхронизация и экспорт:</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="cal-sync-pill" id="calExportGCalBtn" title="Синхронизировать с Google Calendar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Google Calendar</span>
+              </button>
+              <button type="button" class="cal-sync-pill" id="calExportIcsBtn" title="Скачать файл календаря .ICS">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Скачать .ICS</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Day Schedule / Agenda Timeline -->
+        <div class="calendar-agenda-panel">
+          <div class="calendar-selected-date-row">
+            <div>
+              <div class="calendar-selected-weekday" id="calSelectedWeekday">Суббота</div>
+              <div class="calendar-selected-fulldate" id="calSelectedFullDate">12 сентября 2026</div>
+            </div>
+            <span class="calendar-events-badge" id="calSelectedCountBadge">0 дел</span>
+          </div>
+
+          <!-- New Event Inline Creator (Collapsible) -->
+          <div class="cal-event-creator hidden" id="calEventCreator">
+            <div class="cal-creator-header">
+              <span style="font-weight:600;font-size:12px;" id="calCreatorTitle">Новое событие</span>
+              <button type="button" class="btn-icon-subtle" id="calCloseCreatorBtn" style="padding:2px 6px;">×</button>
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+              <input type="text" id="calNewEventTitle" class="setting-input" placeholder="Название встречи или дела..." style="font-size:13px;padding:8px 10px;">
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <input type="time" id="calNewEventTime" class="setting-input" value="12:00" style="font-size:12px;padding:6px 8px;flex:1;">
+              <select id="calNewEventTag" class="setting-select" style="font-size:12px;flex:1;">
+                <option value="work">💼 Работа</option>
+                <option value="personal">🌱 Личное</option>
+                <option value="meeting">🤝 Встреча</option>
+                <option value="focus">⚡ Фокус</option>
+                <option value="reminder">🔔 Напоминание</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+              <input type="text" id="calNewEventNotes" class="setting-input" placeholder="Заметки или ссылка..." style="font-size:11.5px;padding:6px 8px;">
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+              <button type="button" class="cal-action-btn" id="calCancelEventBtn">Отмена</button>
+              <button type="button" class="cal-action-btn primary" id="calSaveEventBtn">Сохранить</button>
+              <button type="button" class="cal-action-btn gcal" id="calSaveAndGCalBtn" title="Сохранить и открыть в Google Calendar">
+                <span>+ Google Cal</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Events Agenda List -->
+          <div class="calendar-agenda-list" id="calAgendaList">
+            <!-- Events rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
        SETTINGS MODAL (PRESERVED FROM V1 ARCHITECTURE)
        ====================================================================== -->
 <div class="modal-backdrop hidden" id="settingsBackdrop" aria-hidden="true">
@@ -3762,6 +5260,23 @@ document.addEventListener('DOMContentLoaded', () => {
               On a free API key, Google uses the content of your conversations to train and improve its models. To prevent this, add a payment card in Google AI Studio and switch to Pay-as-you-go — typical daily usage costs only a few cents. This is your personal diary: make an informed choice.
             </p>
           </aside>
+
+          <!-- Account Balance & Daily Tracking Shortcut -->
+          <div style="margin-top: 12px; display:flex; justify-content:space-between; align-items:center; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:8px; padding:10px 14px;">
+            <div>
+              <div style="font-size:13px; font-weight:600; color:var(--text-bright); display:flex; align-items:center; gap:6px;">
+                <span style="color:var(--accent-gold);">⚡</span>
+                <span id="settingsBillingTitle">Account Balance &amp; Daily Costs</span>
+              </div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                <span id="settingsBillingBalLabel">Balance:</span> <strong id="settingsBalNum" style="color:var(--accent-gold);">$20.00</strong> · 
+                <span id="settingsBillingTodayLabel">Today:</span> <strong id="settingsTodayNum" style="color:var(--text-bright);">$0.00</strong>
+              </div>
+            </div>
+            <button type="button" class="btn-secondary" id="btnOpenBillingFromSettings" style="font-size:12px; padding:6px 14px; border-color:rgba(212,175,55,0.35);">
+              Manage
+            </button>
+          </div>
         </section>
 
         <!-- SECTION 2: VOICE & SPEECH GENERATION -->
@@ -3862,9 +5377,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="form-group">
               <label for="languageSelect" id="labelLanguageSelect">Language (Язык)</label>
               <select id="languageSelect" class="setting-select">
-                <option value="system" selected>System default / Язык системы</option>
+                <option value="system" selected>System default / За замовчуванням</option>
                 <option value="en">English</option>
                 <option value="ru">Русский</option>
+                <option value="uk">Українська</option>
               </select>
               <p class="field-hint" id="hintLanguageSelect">Determines interface language, diary responses, and voice recognition.</p>
             </div>
@@ -3996,6 +5512,14 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 
   <!-- ======================================================================
+       SECRET THEME UNLOCK BANNER ("judy")
+       ====================================================================== -->
+  <div class="judy-unlock-banner" id="judyUnlockBanner" aria-hidden="true">
+    <div class="judy-banner-title">WE’RE NOT GONNA TALK ABOUT JUDY</div>
+    <div class="judy-banner-sub">★ Project Blue Book &amp; The Black Lodge Unlocked ★</div>
+  </div>
+
+  <!-- ======================================================================
        APPLICATION JAVASCRIPT LOGIC
        ====================================================================== -->
   <script>
@@ -4019,13 +5543,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const reactorScreen = document.getElementById('reactorScreen');
 
     const bookObject = document.getElementById('bookObject');
+    const calendarObject = document.getElementById('calendarObject');
     const reactorObject = document.getElementById('reactorObject');
     const reactorNotice = document.getElementById('reactorNotice');
     const selectionStats = document.getElementById('selectionStats');
+    const btnAddExpressStickerBtn = document.getElementById('btnAddExpressStickerBtn');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const openSettingsBtn = document.getElementById('openSettingsBtn');
 
     const closeNotebookBtn = document.getElementById('closeNotebookBtn');
+    const notebookCalendarBtn = document.getElementById('notebookCalendarBtn');
     const notebookThemeToggleBtn = document.getElementById('notebookThemeToggleBtn');
     const notebookSettingsBtn = document.getElementById('notebookSettingsBtn');
     const notebookBreadcrumb = document.getElementById('notebookBreadcrumb');
@@ -4062,7 +5589,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const l of navLangs) {
           if (!l) continue;
           const lower = l.toLowerCase();
-          if (lower.startsWith('ru') || lower.startsWith('uk') || lower.startsWith('be')) {
+          if (lower.startsWith('uk')) {
+            return 'uk';
+          }
+          if (lower.startsWith('ru') || lower.startsWith('be')) {
             return 'ru';
           }
           if (lower.startsWith('en')) {
@@ -4075,7 +5605,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resolveAppLanguage() {
       const saved = localStorage.getItem('diary-language');
-      if (saved === 'ru' || saved === 'en') {
+      if (saved === 'ru' || saved === 'en' || saved === 'uk') {
         return saved;
       }
       return getSystemLanguage();
@@ -4149,6 +5679,47 @@ document.addEventListener('DOMContentLoaded', () => {
         turnDeletedNotice: '(Message removed)',
         atmosphereTitle: 'Atmosphere & Style',
         atmosphereAria: 'Atmosphere & Style',
+        billingChipBal: 'Balance:',
+        billingChipToday: 'Today:',
+        billingModalTitle: 'Account Balance & Daily Spend',
+        billingModalSub: 'Real-Time API Resource & Cost Monitor',
+        billingBalHeader: 'Account Balance',
+        billingStatusActive: 'Active',
+        billingInitDeposit: 'Configured balance:',
+        billingTopupQuick: 'Top up:',
+        billingCustomBal: 'Set balance',
+        billingTodayHeader: 'Spent Today',
+        billingTotalSpent: 'Total expenditure:',
+        billingBreakdownTitle: 'Today\'s Resource Breakdown',
+        billingLiveTitle: 'Gemini Live API (Voice)',
+        billingWalkieTitle: 'Walkie-Talkie (STT + TTS)',
+        billingChatTitle: 'Journal Inscriptions (Chat)',
+        billingTariffNote: '💡 <strong>Pricing Guide</strong>: 1 hour of continuous live voice (Gemini Live API) costs approximately <strong>$0.72 – $0.85</strong> (input audio $3/1M tokens, model voice $12/1M tokens). Walkie-talkie mode on free Groq + Google AI Studio tiers is completely free.',
+        billingCurrency: 'Currency:',
+        billingResetBtn: 'Reset statistics',
+        billingResetConfirm: 'Reset usage counters and daily spend back to zero?',
+        billingCustomPrompt: 'Enter your starting balance or budget limit in USD ($):',
+        calendarTitle: 'Calendar & Schedule',
+        calendarSubline: 'Google Calendar Sync & Voice Tasks',
+        calendarAria: 'Open Desk Calendar & Schedule',
+        calendarAlt: 'Atmospheric Desk Calendar',
+        calToday: 'Today',
+        calSpeakPlans: 'Speak Plans',
+        calAddEvent: 'Add Event',
+        calSyncTitle: 'Sync & Export:',
+        calGoogleCal: 'Google Calendar',
+        calDownloadIcs: 'Download .ICS',
+        calNoEvents: 'No plans scheduled for this day',
+        calTasksCount: (n) => `${n} ${n === 1 ? 'task' : 'tasks'}`,
+        stickerPlaceholder: 'Quick task or thought...',
+        addStickerTitle: 'Pin express sticker to screen',
+        deleteStickerTitle: 'Delete sticker',
+        calNewEventHeading: 'New Event',
+        calSaveEvent: 'Save',
+        calCancelEvent: 'Cancel',
+        calSaveAndGCal: '+ Google Cal',
+        calTitlePlaceholder: 'Meeting or task name...',
+        calNotesPlaceholder: 'Notes or link...',
       },
       ru: {
         langCode: 'ru',
@@ -4225,6 +5796,170 @@ document.addEventListener('DOMContentLoaded', () => {
         turnDeletedNotice: '(Реплика удалена)',
         atmosphereTitle: 'Атмосфера и стиль',
         atmosphereAria: 'Атмосфера и стиль',
+        billingChipBal: 'Счёт:',
+        billingChipToday: 'Сегодня:',
+        billingModalTitle: 'Состояние счёта и расходы',
+        billingModalSub: 'Мониторинг расходов API (Gemini Live, Whisper, Flash)',
+        billingBalHeader: 'Остаток на счёте',
+        billingStatusActive: 'Активен',
+        billingInitDeposit: 'Установленный депозит:',
+        billingTopupQuick: 'Пополнить:',
+        billingCustomBal: 'Задать баланс',
+        billingTodayHeader: 'Потрачено сегодня',
+        billingTotalSpent: 'Всего израсходовано:',
+        billingBreakdownTitle: 'Детализация расходов за сегодня',
+        billingLiveTitle: 'Gemini Live API (Чайник / Реактор)',
+        billingWalkieTitle: 'Рация (Groq Whisper + Gemini TTS)',
+        billingChatTitle: 'Записи в дневнике (Gemini Flash)',
+        billingTariffNote: '💡 <strong>Тарифная памятка</strong>: 1 час непрерывного разговора в живом режиме (Live API) обходится приблизительно в <strong>$0.72 – $0.85</strong> (входящий звук $3/1M токенов, ответы модели $12/1M токенов). В режиме рации на бесплатных тарифах Groq + Google AI Studio общение полностью бесплатно.',
+        billingCurrency: 'Валюта:',
+        billingResetBtn: 'Сбросить счётчики',
+        billingResetConfirm: 'Сбросить счётчики расходов за сегодня и за всё время на ноль?',
+        billingCustomPrompt: 'Введите сумму стартового баланса или лимит в долларах ($):',
+        calendarTitle: 'Календарь и расписание',
+        calendarSubline: 'Google Calendar Sync & Voice Tasks',
+        calendarAria: 'Открыть настольный календарь и расписание',
+        calendarAlt: 'Стилизованный настольный календарь',
+        calToday: 'Сегодня',
+        calSpeakPlans: 'Озвучить планы',
+        calAddEvent: 'Добавить дело',
+        calSyncTitle: 'Синхронизация и экспорт:',
+        calGoogleCal: 'Google Calendar',
+        calDownloadIcs: 'Скачать .ICS',
+        calNoEvents: 'На этот день запланированных дел нет',
+        calTasksCount: (n) => `${n} ${n === 1 ? 'дело' : (n >= 2 && n <= 4 ? 'дела' : 'дел')}`,
+        stickerPlaceholder: 'Быстрая мысль или задача...',
+        addStickerTitle: 'Прикрепить экспресс-стикер на экран',
+        deleteStickerTitle: 'Удалить стикер',
+        calNewEventHeading: 'Новое событие',
+        calSaveEvent: 'Сохранить',
+        calCancelEvent: 'Отмена',
+        calSaveAndGCal: '+ Google Cal',
+        calTitlePlaceholder: 'Название встречи или дела...',
+        calNotesPlaceholder: 'Заметки или ссылка...',
+      },
+      uk: {
+        langCode: 'uk',
+        dateLocale: 'uk-UA',
+        today: 'Сьогодні',
+        newDialogue: 'Новий діалог',
+        newDialogueBtnTitle: 'Почати нову розмову сьогодні',
+        newDialogueRightTitle: 'Відкрити чистий аркуш для нової розмови',
+        archiveIndex: 'Зміст архіву',
+        emptyArchive: 'Архів порожній. Почніть розмову.',
+        noCompletedEntries: 'Немає завершених записів',
+        dialogueFallback: 'Розмова',
+        archivedSessionFallback: 'Архівний запис',
+        sessionRecordTitle: 'Запис розмови',
+        todayTag: 'Сьогодні',
+        yearSuffix: ' рік',
+        shelfBtn: '← Полиця',
+        shelfBtnAria: 'Повернутися на полицю вибору',
+        breadcrumbDefault: 'Архів щоденника та поточний запис',
+        breadcrumbToday: 'Сьогодні · Новий діалог',
+        quoteNewSheet: '«Чорнило лягає на чистий аркуш. Сторінка відкрита для нових думок, запитань і всього, про що хочеться поговорити.»',
+        quoteNewSheetSub: 'Напишіть думку у рядку нижче або натисніть латунну кнопку рації для голосу.',
+        archiveTakeaways: 'Висновки архіву:',
+        contemplatingTitle: '⟨ЩОДЕННИК РОЗДУМУЄ⟩',
+        contemplatingText: 'Перо ковзає по аркушу',
+        penPlaceholder: 'Запишіть свої думки тут... (Enter для надсилання)',
+        penSendAria: 'Надіслати думку',
+        micTitleIdle: 'Рація: Натисніть, щоб говорити',
+        micTitleRec: 'Запис... Натисніть для надсилання',
+        micTitleWait: 'Очікування відповіді...',
+        micTitlePlay: 'Відтворення відповіді...',
+        micAria: 'Мікрофон-рація',
+        spokenThoughtTurn: '· · · (Голосова думка)',
+        spokenThoughtTitle: 'Голосова думка',
+        errMemory: 'Не вдалося звʼязатися зі службою памʼяті щоденника.',
+        errConnection: 'Помилка звʼязку: ',
+        errVoiceProcess: 'Не вдалося обробити голос.',
+        errVoice: 'Помилка голосу: ',
+        errMicAccess: 'Потрібен доступ до мікрофона: ',
+        loadingArchives: 'Завантаження архіву роздумів...',
+        entriesInDiary: (n, date) => {
+          let word = 'записів';
+          const mod10 = n % 10;
+          const mod100 = n % 100;
+          if (mod10 === 1 && mod100 !== 11) {
+            word = 'запис';
+          } else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+            word = 'записи';
+          }
+          return `${n.toLocaleString()} ${word} у щоденнику · Сьогодні: ${date}`;
+        },
+        reactorNoticeFree: 'Для голосового режиму реального часу потрібен платний Gemini — записник працює на безкоштовному тарифі.',
+        reactorNoticeReady: 'Натисніть для запуску голосового візуалізатора.',
+        themeToggleAria: 'Перемкнути тему',
+        settingsAria: 'Відкрити налаштування',
+        reactorExit: '✕ Вихід · ',
+        reactorBridgeConnected: 'Акустичний міст реального часу підключено.',
+        bookAria: 'Відкрити щоденник',
+        bookAlt: 'Закритий дизайнерський записник',
+        reactorAria: 'Запустити голосовий візуалізатор Arc Reactor',
+        reactorAlt: 'Сплячий блок Arc Reactor',
+        editTitle: 'Змінити назву',
+        save: 'Зберегти',
+        cancel: 'Скасувати',
+        deleteDialogue: 'Видалити діалог',
+        deleteDialogueConfirmTitle: 'Видалити діалог?',
+        deleteDialogueConfirmBody: (title) => `Ви впевнені, що хочете видалити запис «${title}» з архіву? Відновити його буде неможливо.`,
+        deleteDialogueEmptyTitle: 'Діалог без назви',
+        editMessage: 'Відредагувати репліку',
+        deleteMessage: 'Видалити репліку',
+        deleteMessageConfirmTitle: 'Видалити репліку?',
+        deleteMessageConfirmBody: 'Видалити цю репліку з розмови?',
+        deleteTakeaways: 'Видалити висновки',
+        turnDeletedNotice: '(Репліку видалено)',
+        atmosphereTitle: 'Атмосфера та стиль',
+        atmosphereAria: 'Атмосфера та стиль',
+        billingChipBal: 'Рахунок:',
+        billingChipToday: 'Сьогодні:',
+        billingModalTitle: 'Стан рахунку та витрати',
+        billingModalSub: 'Моніторинг витрат API (Gemini Live, Whisper, Flash)',
+        billingBalHeader: 'Залишок на рахунку',
+        billingStatusActive: 'Активний',
+        billingInitDeposit: 'Встановлений депозит:',
+        billingTopupQuick: 'Поповнити:',
+        billingCustomBal: 'Вказати баланс',
+        billingTodayHeader: 'Витрачено сьогодні',
+        billingTotalSpent: 'Усього витрачено:',
+        billingBreakdownTitle: 'Деталізація витрат за сьогодні',
+        billingLiveTitle: 'Gemini Live API (Чайник / Реактор)',
+        billingWalkieTitle: 'Рація (Groq Whisper + Gemini TTS)',
+        billingChatTitle: 'Записи у щоденнику (Gemini Flash)',
+        billingTariffNote: '💡 <strong>Тарифна памʼятка</strong>: 1 година безперервної розмови у живому режимі (Live API) коштує приблизно <strong>$0.72 – $0.85</strong> (вхідний звук $3/1M токенів, відповіді моделі $12/1M токенів). У режимі рації на безкоштовних тарифах Groq + Google AI Studio спілкування повністю безкоштовне.',
+        billingCurrency: 'Валюта:',
+        billingResetBtn: 'Скинути лічильники',
+        billingResetConfirm: 'Скинути лічильники витрат за сьогодні та за весь час на нуль?',
+        billingCustomPrompt: 'Введіть суму стартового балансу або ліміт у доларах ($):',
+        calendarTitle: 'Календар і розклад',
+        calendarSubline: 'Синхронізація з Google Calendar та голосові завдання',
+        calendarAria: 'Відкрити настільний календар і розклад',
+        calendarAlt: 'Стилізований настільний календар',
+        calToday: 'Сьогодні',
+        calSpeakPlans: 'Озвучити плани',
+        calAddEvent: 'Додати справу',
+        calSyncTitle: 'Синхронізація та експорт:',
+        calGoogleCal: 'Google Calendar',
+        calDownloadIcs: 'Завантажити .ICS',
+        calNoEvents: 'На цей день запланованих справ немає',
+        calTasksCount: (n) => {
+          const mod10 = n % 10;
+          const mod100 = n % 100;
+          if (mod10 === 1 && mod100 !== 11) return `${n} справа`;
+          if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${n} справи`;
+          return `${n} справ`;
+        },
+        stickerPlaceholder: 'Швидка думка або справа...',
+        addStickerTitle: 'Прикріпити експрес-стікер на екран',
+        deleteStickerTitle: 'Видалити стікер',
+        calNewEventHeading: 'Нова подія',
+        calSaveEvent: 'Зберегти',
+        calCancelEvent: 'Скасувати',
+        calSaveAndGCal: '+ Google Cal',
+        calTitlePlaceholder: 'Назва зустрічі чи справи...',
+        calNotesPlaceholder: 'Нотатки або посилання...',
       }
     };
 
@@ -4278,6 +6013,31 @@ document.addEventListener('DOMContentLoaded', () => {
         exportSection: 'Владение данными и экспорт',
         exportHint: 'Ваши слова принадлежат вам. В любой момент можно скачать всю память дневника и историю разговоров.',
         exportBtn: 'Экспорт архива дневника (JSON)'
+      },
+      uk: {
+        modalTitle: 'Налаштування',
+        subline: 'Вподобання та інтелект',
+        firstLaunchTitle: 'Ласкаво просимо до особистого щоденника.',
+        firstLaunchDesc: 'Щоб розпочати приватні розмови та записи, підключіть ваш API-ключ Gemini та оберіть голос. Ваші налаштування зберігаються локально в цьому браузері.',
+        apiKeySection: 'Ключ Gemini API',
+        getKeyLink: 'Отримати ключ API',
+        testKeyBtn: 'Перевірити ключ',
+        privacyHeader: 'Повідомлення про конфіденційність особистих даних',
+        privacyText: 'На безкоштовному ключі Google використовує зміст розмов для навчання своїх моделей. Щоб це виключити, додайте картку в Google AI Studio та перейдіть на Pay-as-you-go — щоденне користування коштує центи. Це ваш особистий щоденник: зробіть свідомий вибір.',
+        voiceSection: 'Голос та синтез мовлення',
+        voiceLabel: 'Вибір голосу',
+        listenBtn: 'Слухати',
+        ttsModelLabel: 'Модель TTS',
+        speedLabel: 'Темп мовлення',
+        langSection: 'Мова та оформлення',
+        langLabel: 'Мова (Language)',
+        langHint: 'Визначає мову інтерфейсу, відповідей щоденника та розпізнавання мовлення.',
+        themeLabel: 'Візуальна тема',
+        landscapeSection: 'Пейзаж та атмосфера щоденника',
+        landscapeCardTitle: 'Натисніть, щоб обрати пейзаж та атмосферу',
+        exportSection: 'Володіння даними та експорт',
+        exportHint: 'Ваші слова належать вам. У будь-який момент можна завантажити всю памʼять щоденника та історію розмов.',
+        exportBtn: 'Експорт архіву щоденника (JSON)'
       }
     };
 
@@ -4288,6 +6048,16 @@ document.addEventListener('DOMContentLoaded', () => {
         bookObject.setAttribute('aria-label', t.bookAria);
         const img = bookObject.querySelector('img');
         if (img) img.setAttribute('alt', t.bookAlt);
+      }
+      if (calendarObject) {
+        calendarObject.setAttribute('aria-label', t.calendarAria);
+        calendarObject.setAttribute('title', t.calendarTitle);
+        const img = calendarObject.querySelector('img');
+        if (img) img.setAttribute('alt', t.calendarAlt);
+      }
+      if (btnAddExpressStickerBtn) {
+        btnAddExpressStickerBtn.setAttribute('title', t.addStickerTitle);
+        btnAddExpressStickerBtn.setAttribute('aria-label', t.addStickerTitle);
       }
       if (reactorObject) {
         reactorObject.setAttribute('aria-label', t.reactorAria);
@@ -4407,7 +6177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyLanguage(choice) {
-      if (choice === 'ru' || choice === 'en') {
+      if (choice === 'ru' || choice === 'en' || choice === 'uk') {
         currentLang = choice;
       } else {
         currentLang = getSystemLanguage();
@@ -4421,6 +6191,12 @@ document.addEventListener('DOMContentLoaded', () => {
       initCapabilities();
       updateSettingsModalStrings();
       paintLangToggle();
+      if (window.diaryBilling) {
+        window.diaryBilling.updateUI();
+      }
+      if (window.diaryCalendar) {
+        window.diaryCalendar.updateUI();
+      }
     }
     window.applyLanguage = applyLanguage;
     window.getSystemLanguage = getSystemLanguage;
@@ -4541,17 +6317,28 @@ document.addEventListener('DOMContentLoaded', () => {
       return ['langToggleBtn', 'notebookLangToggleBtn']
         .map(id => document.getElementById(id)).filter(Boolean);
     }
+    function getNextLanguage(cur) {
+      if (cur === 'ru') return 'uk';
+      if (cur === 'uk') return 'en';
+      return 'ru';
+    }
     function paintLangToggle() {
-      const target = currentLang === 'ru' ? 'en' : 'ru';
-      const label = target === 'en' ? 'Switch to English' : 'Переключить на русский';
+      const next = getNextLanguage(currentLang);
+      const code = next === 'uk' ? 'UA' : next.toUpperCase();
+      let label = 'Switch to English';
+      if (next === 'uk') {
+        label = 'Перемкнути на українську';
+      } else if (next === 'ru') {
+        label = 'Переключить на русский';
+      }
       langToggleBtns().forEach(b => {
-        b.textContent = target.toUpperCase();
+        b.textContent = code;
         b.setAttribute('title', label);
         b.setAttribute('aria-label', label);
       });
     }
     function toggleLanguage() {
-      const next = currentLang === 'ru' ? 'en' : 'ru';
+      const next = getNextLanguage(currentLang);
       localStorage.setItem('diary-language', next);
       const sel = document.getElementById('languageSelect');
       if (sel) sel.value = next;
@@ -4646,12 +6433,12 @@ document.addEventListener('DOMContentLoaded', () => {
             {
               id: "sess_today",
               started: "21:40",
-              title: currentLang === 'ru' ? "Вечернее размышление" : "Evening reflection",
+              title: currentLang === 'uk' ? "Вечірній роздум" : (currentLang === 'ru' ? "Вечернее размышление" : "Evening reflection"),
               turns: [
-                { who: "you", text: currentLang === 'ru' ? "Смотрю на результат дня: интерфейс дневника ощущается цельным." : "Looking back at the day: the diary interface feels complete." },
-                { who: "diary", text: currentLang === 'ru' ? "Вы уделили время созданию продуманной книги размышлений. Что сейчас ощущается ярче всего?" : "You took time to build both the structured ledger and the live stream of thought. What stands out most right now?" }
+                { who: "you", text: currentLang === 'uk' ? "Дивлюся на підсумок дня: інтерфейс щоденника відчувається цілісним." : (currentLang === 'ru' ? "Смотрю на результат дня: интерфейс дневника ощущается цельным." : "Looking back at the day: the diary interface feels complete.") },
+                { who: "diary", text: currentLang === 'uk' ? "Ви приділили час створенню продуманої книги роздумів. Що зараз відчувається найяскравіше?" : (currentLang === 'ru' ? "Вы уделили время созданию продуманной книги размышлений. Что сейчас ощущается ярче всего?" : "You took time to build both the structured ledger and the live stream of thought. What stands out most right now?") }
               ],
-              takeaways: [currentLang === 'ru' ? "Архив размышлений синхронизирован с пером записи." : "Structured archive hierarchy harmonized with immediate pen inscription."]
+              takeaways: [currentLang === 'uk' ? "Архів роздумів синхронізовано з пером запису." : (currentLang === 'ru' ? "Архив размышлений синхронизирован с пером записи." : "Structured archive hierarchy harmonized with immediate pen inscription.")]
             }
           ]
         }
@@ -4692,8 +6479,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const weekday = dObj.toLocaleDateString(t.dateLocale, { weekday: 'long' });
 
         let dayLabel = `${monthNameCap} ${dayNum}`;
-        if (currentLang === 'ru') {
-          dayLabel = dObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+        if (currentLang === 'ru' || currentLang === 'uk') {
+          dayLabel = dObj.toLocaleDateString(t.dateLocale, { day: 'numeric', month: 'long' });
         }
 
         let fullFormatted = dObj.toLocaleDateString(t.dateLocale, {
@@ -4789,7 +6576,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const t = I18N[currentLang] || I18N.en;
       titleEl.textContent = title || t.deleteDialogueConfirmTitle;
       bodyEl.textContent = message || '';
-      btnOk.textContent = confirmText || (currentLang === 'ru' ? 'Удалить' : 'Delete');
+      btnOk.textContent = confirmText || (currentLang === 'uk' ? 'Видалити' : (currentLang === 'ru' ? 'Удалить' : 'Delete'));
       btnCancel.textContent = cancelText || t.cancel;
 
       _confirmCallback = onConfirm;
@@ -4845,7 +6632,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showDiaryConfirmModal({
         title: t.deleteDialogueConfirmTitle,
         message: t.deleteDialogueConfirmBody(title),
-        confirmText: currentLang === 'ru' ? 'Удалить запись' : 'Delete entry',
+        confirmText: currentLang === 'uk' ? 'Видалити запис' : (currentLang === 'ru' ? 'Удалить запись' : 'Delete entry'),
         cancelText: t.cancel,
         onConfirm: async () => {
           // Remove from rawDaysData
@@ -5269,7 +7056,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showDiaryConfirmModal({
               title: t.deleteMessageConfirmTitle,
               message: t.deleteMessageConfirmBody,
-              confirmText: currentLang === 'ru' ? 'Удалить' : 'Delete',
+              confirmText: currentLang === 'uk' ? 'Видалити' : (currentLang === 'ru' ? 'Удалить' : 'Delete'),
               cancelText: t.cancel,
               onConfirm: async () => {
                 foundSess.turns.splice(idx, 1);
@@ -5402,6 +7189,9 @@ document.addEventListener('DOMContentLoaded', () => {
               targetSession.takeaways.push(summary);
             }
           }
+          if (window.diaryBilling) {
+            window.diaryBilling.addChat(text.length, (d.answer || '').length);
+          }
         } else {
           targetSession.turns.push({ who: 'diary', text: t.errMemory });
         }
@@ -5431,6 +7221,1303 @@ document.addEventListener('DOMContentLoaded', () => {
         submitPenText();
       }
     });
+
+    /* ── API Billing & Daily Resource Tracker Engine ──────────────────────── */
+    const diaryBilling = (function() {
+      const STORAGE_KEY = 'diary-billing-data';
+      const DEFAULT_INITIAL_BALANCE = 20.00;
+      const RUB_PER_USD = 95.0;
+
+      function getTodayKey() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (!parsed.daily) parsed.daily = {};
+            if (typeof parsed.initialBalance !== 'number') parsed.initialBalance = DEFAULT_INITIAL_BALANCE;
+            if (!parsed.currency) parsed.currency = 'USD';
+            if (typeof parsed.totalSpentUSD !== 'number') parsed.totalSpentUSD = 0;
+            return parsed;
+          }
+        } catch (e) {}
+        return {
+          initialBalance: DEFAULT_INITIAL_BALANCE,
+          currency: 'USD',
+          exchangeRate: RUB_PER_USD,
+          totalSpentUSD: 0,
+          daily: {}
+        };
+      }
+
+      function saveData(data) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {}
+      }
+
+      function getTodayStats() {
+        const data = loadData();
+        const today = getTodayKey();
+        if (!data.daily[today]) {
+          data.daily[today] = {
+            liveInputSec: 0,
+            liveOutputSec: 0,
+            liveCostUSD: 0,
+            walkieTurns: 0,
+            walkieSec: 0,
+            walkieCostUSD: 0,
+            chatTurns: 0,
+            chatCostUSD: 0,
+            costUSD: 0
+          };
+          saveData(data);
+        }
+        return { data, today, stats: data.daily[today] };
+      }
+
+      function recordUsage(deltaUSD, mutator) {
+        const { data, stats } = getTodayStats();
+        mutator(stats);
+        stats.costUSD = Math.max(0, (stats.costUSD || 0) + deltaUSD);
+        data.totalSpentUSD = Math.max(0, (data.totalSpentUSD || 0) + deltaUSD);
+        saveData(data);
+        updateUI();
+      }
+
+      function addLiveInput(seconds) {
+        // 32 токена на секунду входящего звука × $3 за 1M (замерено по прайсу
+        // и сверено с его же ценой за минуту). Было 0.000075 — это 25 ток/с,
+        // и панель занижала вход на 22%.
+        const cost = seconds * 0.000096;
+        recordUsage(cost, s => {
+          s.liveInputSec = (s.liveInputSec || 0) + seconds;
+          s.liveCostUSD = (s.liveCostUSD || 0) + cost;
+        });
+      }
+
+      function addLiveOutput(seconds) {
+        const cost = seconds * 0.000300;
+        recordUsage(cost, s => {
+          s.liveOutputSec = (s.liveOutputSec || 0) + seconds;
+          s.liveCostUSD = (s.liveCostUSD || 0) + cost;
+        });
+      }
+
+      function addWalkie(inputSec, outputSec) {
+        const sttCost = (inputSec / 3600) * 0.04;          // Groq whisper turbo, $0.04/час
+        // Gemini TTS стоит $20 за 1M выходных токенов, а не $10 — было занижено вдвое.
+        const ttsCost = outputSec * (25 * 20.00 / 1_000_000);
+        // Ход разговора замерен по usageMetadata: $0.0037 с размышлением модели,
+        // а не плоские $0.0003. Занижение было двенадцатикратным.
+        const cost = sttCost + ttsCost + 0.0037;
+        recordUsage(cost, s => {
+          s.walkieTurns = (s.walkieTurns || 0) + 1;
+          s.walkieSec = (s.walkieSec || 0) + (inputSec + outputSec);
+          s.walkieCostUSD = (s.walkieCostUSD || 0) + cost;
+        });
+      }
+
+      function addChat(inLen, outLen) {
+        // Ставки gemini-3.8-flash: $0.75 за 1M входа и $3.75 за 1M выхода.
+        // Прежние 0.15/0.60 занижали счёт в пять раз. И главное: модель ДУМАЕТ
+        // перед ответом — замер дал 654 токена размышления против 144 в самом
+        // ответе, и они оплачиваются как выход. Без этого слагаемого панель
+        // показывала бы треть правды.
+        const inTokens = Math.ceil(inLen / 4) + 2500;
+        const outTokens = Math.ceil(outLen / 4) + 600;
+        const cost = (inTokens / 1_000_000) * 0.75 + (outTokens / 1_000_000) * 3.75;
+        recordUsage(cost, s => {
+          s.chatTurns = (s.chatTurns || 0) + 1;
+          s.chatCostUSD = (s.chatCostUSD || 0) + cost;
+        });
+      }
+
+      function topUp(amountUSD) {
+        const data = loadData();
+        data.initialBalance = Math.max(0, (data.initialBalance || 0) + amountUSD);
+        saveData(data);
+        updateUI();
+      }
+
+      function setInitialBalance(amountUSD) {
+        const data = loadData();
+        data.initialBalance = Math.max(0, amountUSD);
+        saveData(data);
+        updateUI();
+      }
+
+      function setCurrency(curr) {
+        const data = loadData();
+        data.currency = curr;
+        saveData(data);
+        updateUI();
+      }
+
+      function resetStats() {
+        const t = I18N[currentLang] || I18N.ru;
+        if (!confirm(t.billingResetConfirm)) return;
+        const data = loadData();
+        data.totalSpentUSD = 0;
+        data.daily = {};
+        saveData(data);
+        updateUI();
+      }
+
+      function formatAmount(amountUSD, overrideCurr) {
+        const data = loadData();
+        const curr = overrideCurr || data.currency || 'USD';
+        if (curr === 'RUB') {
+          const rub = (amountUSD || 0) * (data.exchangeRate || RUB_PER_USD);
+          return `${rub.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽`;
+        }
+        return `$${(amountUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+
+      function updateUI() {
+        const { data, stats } = getTodayStats();
+        const t = I18N[currentLang] || I18N.ru;
+        const balanceUSD = Math.max(0, (data.initialBalance || DEFAULT_INITIAL_BALANCE) - (data.totalSpentUSD || 0));
+        const todayCostUSD = stats.costUSD || 0;
+
+        // 1. Chip on main shelf
+        const chipBalEl = document.getElementById('billingChipBalance');
+        const chipTodayEl = document.getElementById('billingChipToday');
+        const chipBalLabel = document.getElementById('billingChipBalLabel');
+        const chipTodayLabel = document.getElementById('billingChipTodayLabel');
+        const indicator = document.getElementById('billingChipIndicator');
+
+        if (chipBalEl) chipBalEl.textContent = formatAmount(balanceUSD);
+        if (chipTodayEl) chipTodayEl.textContent = formatAmount(todayCostUSD);
+        if (chipBalLabel) chipBalLabel.textContent = t.billingChipBal || 'Счёт:';
+        if (chipTodayLabel) chipTodayLabel.textContent = t.billingChipToday || 'Сегодня:';
+
+        if (indicator) {
+          indicator.className = 'billing-chip-indicator';
+          if (balanceUSD <= 1.0) {
+            indicator.classList.add('danger');
+          } else if (balanceUSD <= 5.0) {
+            indicator.classList.add('warning');
+          }
+        }
+
+        // 2. Inside Billing Modal
+        const modalBalNum = document.getElementById('billingModalBalNum');
+        const modalInitVal = document.getElementById('billingModalInitVal');
+        const modalTodayNum = document.getElementById('billingModalTodayNum');
+        const modalTotalVal = document.getElementById('billingModalTotalVal');
+        const modalTodayDate = document.getElementById('billingModalTodayDate');
+
+        if (modalBalNum) modalBalNum.textContent = formatAmount(balanceUSD);
+        if (modalInitVal) modalInitVal.textContent = formatAmount(data.initialBalance);
+        if (modalTodayNum) modalTodayNum.textContent = formatAmount(todayCostUSD);
+        if (modalTotalVal) modalTotalVal.textContent = formatAmount(data.totalSpentUSD || 0);
+        if (modalTodayDate) {
+          const now = new Date();
+          const t = I18N[currentLang] || I18N.en;
+          modalTodayDate.textContent = now.toLocaleDateString(t.dateLocale);
+        }
+
+        // Breakdown items
+        const liveDesc = document.getElementById('billingLiveDesc');
+        const liveCost = document.getElementById('billingLiveCost');
+        const walkieDesc = document.getElementById('billingWalkieDesc');
+        const walkieCost = document.getElementById('billingWalkieCost');
+        const chatDesc = document.getElementById('billingChatDesc');
+        const chatCost = document.getElementById('billingChatCost');
+
+        if (liveDesc) {
+          const inSec = Math.round(stats.liveInputSec || 0);
+          const outSec = Math.round(stats.liveOutputSec || 0);
+          const tokens = Math.round((inSec + outSec) * 25);
+          liveDesc.textContent = `${inSec}s mic / ${outSec}s spk (~${tokens.toLocaleString()} tokens)`;
+        }
+        if (liveCost) liveCost.textContent = formatAmount(stats.liveCostUSD || 0);
+
+        if (walkieDesc) {
+          const turns = stats.walkieTurns || 0;
+          const sec = Math.round(stats.walkieSec || 0);
+          const turnsWord = currentLang === 'uk' ? 'реплік' : (currentLang === 'ru' ? 'реплик' : 'turns');
+          walkieDesc.textContent = `${turns} ${turnsWord} (${sec}s audio)`;
+        }
+        if (walkieCost) walkieCost.textContent = formatAmount(stats.walkieCostUSD || 0);
+
+        if (chatDesc) {
+          const turns = stats.chatTurns || 0;
+          const exchWord = currentLang === 'uk' ? 'діалогів' : (currentLang === 'ru' ? 'диалогов' : 'exchanges');
+          chatDesc.textContent = `${turns} ${exchWord}`;
+        }
+        if (chatCost) chatCost.textContent = formatAmount(stats.chatCostUSD || 0);
+
+        // Status pill in modal
+        const statusDot = document.getElementById('billingStatusDot');
+        const statusText = document.getElementById('billingCardStatusText');
+        if (statusDot && statusText) {
+          if (balanceUSD <= 0.05) {
+            statusDot.style.background = '#EF4444';
+            statusText.textContent = currentLang === 'uk' ? 'Вичерпано' : (currentLang === 'ru' ? 'Исчерпан' : 'Exhausted');
+          } else if (balanceUSD <= 5.0) {
+            statusDot.style.background = '#F59E0B';
+            statusText.textContent = currentLang === 'uk' ? 'Мало коштів' : (currentLang === 'ru' ? 'Мало средств' : 'Low Funds');
+          } else {
+            statusDot.style.background = '#10B981';
+            statusText.textContent = currentLang === 'uk' ? 'Активний' : (currentLang === 'ru' ? 'Активен' : 'Active');
+          }
+        }
+
+        // Currency buttons
+        const btnUSD = document.getElementById('btnCurrUSD');
+        const btnRUB = document.getElementById('btnCurrRUB');
+        if (btnUSD) btnUSD.classList.toggle('active', data.currency !== 'RUB');
+        if (btnRUB) btnRUB.classList.toggle('active', data.currency === 'RUB');
+
+        // Settings summary row (if exists)
+        const sBal = document.getElementById('settingsBalNum');
+        const sToday = document.getElementById('settingsTodayNum');
+        if (sBal) sBal.textContent = formatAmount(balanceUSD);
+        if (sToday) sToday.textContent = formatAmount(todayCostUSD);
+
+        // Update modal texts according to language
+        const modalTitle = document.getElementById('billingModalTitle');
+        const modalSub = document.getElementById('billingSubline');
+        const balHeader = document.getElementById('billingModalBalHeader');
+        const todayHeader = document.getElementById('billingModalTodayHeader');
+        const breakdownTitle = document.getElementById('billingBreakdownTitle');
+        const liveTitle = document.getElementById('billingLiveTitle');
+        const walkieTitle = document.getElementById('billingWalkieTitle');
+        const chatTitle = document.getElementById('billingChatTitle');
+        const tariffNote = document.getElementById('billingTariffNote');
+        const resetBtn = document.getElementById('btnResetBillingStats');
+        const topupQuickLabel = document.getElementById('billingTopupQuickLabel');
+        const btnCustomBal = document.getElementById('btnCustomBalance');
+
+        const initLabel = document.getElementById('billingModalInitLabel');
+        const totalLabel = document.getElementById('billingModalTotalLabel');
+        const currLabel = document.getElementById('billingCurrencyLabel');
+
+        if (modalTitle && t.billingModalTitle) modalTitle.textContent = t.billingModalTitle;
+        if (modalSub && t.billingModalSub) modalSub.textContent = t.billingModalSub;
+        if (balHeader && t.billingBalHeader) balHeader.textContent = t.billingBalHeader;
+        if (todayHeader && t.billingTodayHeader) todayHeader.textContent = t.billingTodayHeader;
+        if (initLabel && t.billingInitDeposit) initLabel.textContent = t.billingInitDeposit;
+        if (totalLabel && t.billingTotalSpent) totalLabel.textContent = t.billingTotalSpent;
+        if (currLabel && t.billingCurrency) currLabel.textContent = t.billingCurrency;
+        if (breakdownTitle && t.billingBreakdownTitle) breakdownTitle.textContent = t.billingBreakdownTitle;
+        if (liveTitle && t.billingLiveTitle) liveTitle.textContent = t.billingLiveTitle;
+        if (walkieTitle && t.billingWalkieTitle) walkieTitle.textContent = t.billingWalkieTitle;
+        if (chatTitle && t.billingChatTitle) chatTitle.textContent = t.billingChatTitle;
+        if (tariffNote && t.billingTariffNote) tariffNote.innerHTML = t.billingTariffNote;
+        if (resetBtn && t.billingResetBtn) resetBtn.textContent = t.billingResetBtn;
+        if (topupQuickLabel && t.billingTopupQuick) topupQuickLabel.textContent = t.billingTopupQuick;
+        if (btnCustomBal && t.billingCustomBal) btnCustomBal.textContent = t.billingCustomBal;
+      }
+
+      function openModal() {
+        const modal = document.getElementById('billingModalBackdrop');
+        if (modal) {
+          updateUI();
+          modal.classList.remove('hidden');
+          modal.setAttribute('aria-hidden', 'false');
+        }
+      }
+
+      function closeModal() {
+        const modal = document.getElementById('billingModalBackdrop');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+      }
+
+      function init() {
+        updateUI();
+
+        const chip = document.getElementById('billingCounterChip');
+        if (chip) chip.addEventListener('click', openModal);
+
+        const closeBtn = document.getElementById('closeBillingModalBtn');
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+        const backdrop = document.getElementById('billingModalBackdrop');
+        if (backdrop) {
+          backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal();
+          });
+        }
+
+        const btnUSD = document.getElementById('btnCurrUSD');
+        const btnRUB = document.getElementById('btnCurrRUB');
+        if (btnUSD) btnUSD.addEventListener('click', () => setCurrency('USD'));
+        if (btnRUB) btnRUB.addEventListener('click', () => setCurrency('RUB'));
+
+        const btnCustomBal = document.getElementById('btnCustomBalance');
+        if (btnCustomBal) {
+          btnCustomBal.addEventListener('click', () => {
+            const t = I18N[currentLang] || I18N.ru;
+            const cur = loadData().initialBalance || DEFAULT_INITIAL_BALANCE;
+            const input = prompt(t.billingCustomPrompt || 'Enter starting balance ($):', cur.toFixed(2));
+            if (input !== null) {
+              const val = parseFloat(input.replace(',', '.'));
+              if (!isNaN(val) && val >= 0) {
+                setInitialBalance(val);
+              }
+            }
+          });
+        }
+
+        const resetBtn = document.getElementById('btnResetBillingStats');
+        if (resetBtn) resetBtn.addEventListener('click', resetStats);
+
+        const btnSettingsOpen = document.getElementById('btnOpenBillingFromSettings');
+        if (btnSettingsOpen) {
+          btnSettingsOpen.addEventListener('click', () => {
+            const sb = document.getElementById('settingsBackdrop');
+            if (sb) {
+              sb.classList.add('hidden');
+              sb.setAttribute('aria-hidden', 'true');
+            }
+            openModal();
+          });
+        }
+
+        document.addEventListener('keydown', (e) => {
+          if (backdrop && !backdrop.classList.contains('hidden') && e.key === 'Escape') {
+            e.preventDefault();
+            closeModal();
+          }
+        });
+      }
+
+      return {
+        init,
+        loadData,
+        getTodayStats,
+        addLiveInput,
+        addLiveOutput,
+        addWalkie,
+        addChat,
+        topUp,
+        setInitialBalance,
+        setCurrency,
+        resetStats,
+        formatAmount,
+        updateUI,
+        openModal,
+        closeModal
+      };
+    })();
+    window.diaryBilling = diaryBilling;
+    try {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => diaryBilling.init());
+      } else {
+        diaryBilling.init();
+      }
+    } catch (e) {
+      console.warn('[billing] init error:', e);
+    }
+
+    /* ======================================================================
+       DIARY CALENDAR & AGENDA STUDIO ENGINE (GOOGLE CALENDAR + VOICE TASKS)
+       ====================================================================== */
+    const diaryCalendar = (function() {
+      const STORAGE_KEY = 'diary-calendar-data';
+      const STICKER_COLORS = ['kraft', 'sage', 'rose', 'lavender', 'slate'];
+
+      let state = {
+        events: [],
+        stickers: []
+      };
+
+      let selectedDate = new Date().toISOString().split('T')[0];
+      let viewYear = new Date().getFullYear();
+      let viewMonth = new Date().getMonth();
+
+      function pad2(n) { return String(n).padStart(2, '0'); }
+
+      function getTodayISO() {
+        const d = new Date();
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+      }
+
+      function loadLocal() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+              state.events = Array.isArray(parsed.events) ? parsed.events : [];
+              state.stickers = Array.isArray(parsed.stickers) ? parsed.stickers : [];
+            }
+          }
+        } catch (e) {
+          console.warn('[calendar] localStorage load error:', e);
+        }
+      }
+
+      function saveLocal() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.warn('[calendar] localStorage save error:', e);
+        }
+      }
+
+      async function syncFetch() {
+        try {
+          const r = await fetch('/api/calendar');
+          if (r.ok) {
+            const data = await r.json();
+            if (data && typeof data === 'object') {
+              if (Array.isArray(data.events)) state.events = data.events;
+              if (Array.isArray(data.stickers)) state.stickers = data.stickers;
+              saveLocal();
+              updateUI();
+            }
+          }
+        } catch (e) {
+          // offline or dev mode
+        }
+      }
+
+      async function apiAction(action, payload) {
+        try {
+          const r = await fetch('/api/calendar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, ...payload })
+          });
+          if (r.ok) {
+            return await r.json();
+          }
+        } catch (e) {
+          console.warn('[calendar] apiAction error:', action, e);
+        }
+        return null;
+      }
+
+      function getTagEmoji(tag) {
+        switch (tag) {
+          case 'work': return '💼';
+          case 'personal': return '🌱';
+          case 'meeting': return '🤝';
+          case 'focus': return '⚡';
+          case 'reminder': return '🔔';
+          default: return '📌';
+        }
+      }
+
+      function getTagLabel(tag) {
+        if (currentLang === 'uk') {
+          switch (tag) {
+            case 'work': return 'Робота';
+            case 'personal': return 'Особисте';
+            case 'meeting': return 'Зустріч';
+            case 'focus': return 'Фокус';
+            case 'reminder': return 'Нагадування';
+            default: return 'Справа';
+          }
+        }
+        const isRu = currentLang === 'ru';
+        switch (tag) {
+          case 'work': return isRu ? 'Работа' : 'Work';
+          case 'personal': return isRu ? 'Личное' : 'Personal';
+          case 'meeting': return isRu ? 'Встреча' : 'Meeting';
+          case 'focus': return isRu ? 'Фокус' : 'Focus';
+          case 'reminder': return isRu ? 'Напоминание' : 'Reminder';
+          default: return isRu ? 'Дело' : 'Task';
+        }
+      }
+
+      // --- Shelf Overlay Badge ---
+      function updateBadgeOverlay() {
+        const todayIso = getTodayISO();
+        const todayEvents = (state.events || []).filter(e => e.date === todayIso);
+        const pendingStickers = (state.stickers || []).filter(s => !s.completed);
+        const totalCount = todayEvents.length + pendingStickers.length;
+
+        const dateEl = document.getElementById('calendarBadgeDate');
+        const countEl = document.getElementById('calendarBadgeCount');
+
+        if (dateEl) {
+          const now = new Date();
+          const day = now.getDate();
+          const monthsEn = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+          const monthsRu = ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК'];
+          const monthsUk = ['СІЧ', 'ЛЮТ', 'БЕР', 'КВІ', 'ТРА', 'ЧЕР', 'ЛИП', 'СЕР', 'ВЕР', 'ЖОВ', 'ЛИС', 'ГРУ'];
+          const mList = currentLang === 'uk' ? monthsUk : (currentLang === 'ru' ? monthsRu : monthsEn);
+          const mStr = mList[now.getMonth()];
+          dateEl.textContent = `${day} ${mStr}`;
+        }
+
+        if (countEl) {
+          const t = I18N[currentLang] || I18N.ru;
+          countEl.textContent = typeof t.calTasksCount === 'function' ? t.calTasksCount(totalCount) : `${totalCount} дел`;
+        }
+      }
+
+      function getLandscapeStamp(landscapeId) {
+        const stamps = {
+          twin_peaks: 'THE GREAT NORTHERN · SNOQUALMIE',
+          phangan: 'KOH PHANGAN · SUNSET NOTE',
+          banff: 'BANFF FIELD LOG · 51°10′N',
+          kyoto: '京都 · 嵐山 (ARASHIYAMA NOTE)',
+          iceland: 'STÖÐ · 64°08′N 21°56′W',
+          wadi_rum: 'WADI RUM · VALLEY OF THE MOON',
+          kerala: 'MALABAR BOTANICAL · COCHIN',
+          black_lodge: '★ TOP SECRET · BLUE BOOK ★'
+        };
+        return stamps[landscapeId] || stamps.twin_peaks;
+      }
+
+      // --- Express Task Stickers on Scenic Screen ---
+      function renderStickers() {
+        const container = document.getElementById('expressStickersArea');
+        if (!container) return;
+
+        container.innerHTML = '';
+        if (!state.stickers || state.stickers.length === 0) {
+          return;
+        }
+
+        const currentLandscape = (typeof getCurrentLandscape === 'function' ? getCurrentLandscape() : 'twin_peaks');
+        const stampText = getLandscapeStamp(currentLandscape);
+
+        state.stickers.forEach((sticker, index) => {
+          const el = document.createElement('div');
+          const tilts = [-2.2, 1.8, -1.2, 2.4, -1.7, 1.5];
+          const tilt = tilts[index % tilts.length];
+
+          el.className = `express-sticker style-${currentLandscape} ${sticker.completed ? 'completed' : ''}`;
+          el.style.transform = `rotate(${tilt}deg)`;
+          el.setAttribute('data-id', sticker.id);
+
+          el.innerHTML = `
+            <div class="sticker-pushpin" aria-hidden="true"></div>
+            <button type="button" class="sticker-delete-btn" title="${(I18N[currentLang] || I18N.ru).deleteStickerTitle || 'Удалить'}">×</button>
+            <div class="sticker-header-stamp">${stampText}</div>
+            <div class="sticker-card-inner">
+              <button type="button" class="sticker-custom-check ${sticker.completed ? 'checked' : ''}" aria-label="Отметить выполненным">
+                <span class="sticker-check-icon">✓</span>
+              </button>
+              <div class="sticker-text" contenteditable="true" spellcheck="false">${esc(sticker.text)}</div>
+            </div>
+          `;
+
+          // Checkbox toggle
+          const chk = el.querySelector('.sticker-custom-check');
+          chk.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sticker.completed = !sticker.completed;
+            chk.classList.toggle('checked', sticker.completed);
+            el.classList.toggle('completed', sticker.completed);
+            saveLocal();
+            updateBadgeOverlay();
+            apiAction('complete_sticker', { id: sticker.id, completed: sticker.completed });
+          });
+
+          // Delete button
+          const del = el.querySelector('.sticker-delete-btn');
+          del.addEventListener('click', (e) => {
+            e.stopPropagation();
+            el.style.transform += ' scale(0.85)';
+            el.style.opacity = '0';
+            setTimeout(() => {
+              state.stickers = state.stickers.filter(s => s.id !== sticker.id);
+              saveLocal();
+              renderStickers();
+              updateBadgeOverlay();
+            }, 180);
+            apiAction('delete_sticker', { id: sticker.id });
+          });
+
+          // Inline edit text
+          const txt = el.querySelector('.sticker-text');
+          txt.addEventListener('blur', () => {
+            const newText = txt.textContent.trim();
+            if (newText && newText !== sticker.text) {
+              sticker.text = newText;
+              saveLocal();
+              apiAction('update_sticker', { id: sticker.id, text: newText });
+            }
+          });
+          txt.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              txt.blur();
+            }
+          });
+
+          container.appendChild(el);
+        });
+      }
+
+      function addNewSticker(initialText) {
+        const defaultText = currentLang === 'uk'
+          ? 'Нова думка або справа...'
+          : (currentLang === 'ru' ? 'Новая мысль или дело...' : 'New thought or plan...');
+        const text = initialText || defaultText;
+        const newStk = {
+          id: `stk_${Date.now()}`,
+          text: text,
+          completed: false,
+          created: new Date().toISOString()
+        };
+        state.stickers.push(newStk);
+        saveLocal();
+        renderStickers();
+        updateBadgeOverlay();
+
+        const container = document.getElementById('expressStickersArea');
+        if (container) {
+          const lastStk = container.querySelector(`[data-id="${newStk.id}"] .sticker-text`);
+          if (lastStk) {
+            lastStk.focus();
+            const range = document.createRange();
+            range.selectNodeContents(lastStk);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+
+        apiAction('add_sticker', { text: newStk.text });
+      }
+
+      // --- Month Grid & Agenda ---
+      function renderMonthGrid() {
+        const grid = document.getElementById('calDaysGrid');
+        const heading = document.getElementById('calMonthHeading');
+        if (!grid || !heading) return;
+
+        const isUk = currentLang === 'uk';
+        const isRu = currentLang === 'ru';
+        const monthsRu = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+        const monthsUk = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
+        const monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const mNames = isUk ? monthsUk : (isRu ? monthsRu : monthsEn);
+        heading.textContent = `${mNames[viewMonth]} ${viewYear}`;
+
+        const wdRow = document.getElementById('calWeekdaysRow');
+        if (wdRow) {
+          wdRow.innerHTML = isUk
+            ? '<span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>'
+            : (isRu
+              ? '<span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>'
+              : '<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>');
+        }
+
+        grid.innerHTML = '';
+
+        const firstDay = new Date(viewYear, viewMonth, 1);
+        let startDayIdx = (firstDay.getDay() + 6) % 7;
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+        const todayIso = getTodayISO();
+
+        const eventCounts = {};
+        (state.events || []).forEach(e => {
+          eventCounts[e.date] = (eventCounts[e.date] || 0) + 1;
+        });
+
+        for (let i = startDayIdx - 1; i >= 0; i--) {
+          const dayNum = daysInPrevMonth - i;
+          const cell = document.createElement('div');
+          cell.className = 'calendar-day-cell outside';
+          cell.innerHTML = `<span class="calendar-day-num">${dayNum}</span>`;
+          grid.appendChild(cell);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${viewYear}-${pad2(viewMonth + 1)}-${pad2(d)}`;
+          const cell = document.createElement('div');
+          cell.className = 'calendar-day-cell';
+          if (dateStr === todayIso) cell.classList.add('today');
+          if (dateStr === selectedDate) cell.classList.add('selected');
+
+          const hasEvents = (eventCounts[dateStr] || 0) > 0;
+          cell.innerHTML = `
+            <span class="calendar-day-num">${d}</span>
+            ${hasEvents ? '<span class="calendar-day-dot"></span>' : ''}
+          `;
+
+          cell.addEventListener('click', () => {
+            selectedDate = dateStr;
+            renderMonthGrid();
+            renderAgenda();
+          });
+
+          grid.appendChild(cell);
+        }
+
+        const totalRendered = startDayIdx + daysInMonth;
+        const totalSlots = totalRendered > 35 ? 42 : 35;
+        const nextMonthDays = totalSlots - totalRendered;
+        for (let d = 1; d <= nextMonthDays; d++) {
+          const cell = document.createElement('div');
+          cell.className = 'calendar-day-cell outside';
+          cell.innerHTML = `<span class="calendar-day-num">${d}</span>`;
+          grid.appendChild(cell);
+        }
+      }
+
+      function renderAgenda() {
+        const weekdayEl = document.getElementById('calSelectedWeekday');
+        const fulldateEl = document.getElementById('calSelectedFullDate');
+        const badgeEl = document.getElementById('calSelectedCountBadge');
+        const listEl = document.getElementById('calAgendaList');
+
+        if (!listEl) return;
+
+        const isUk = currentLang === 'uk';
+        const isRu = currentLang === 'ru';
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        const selDateObj = new Date(y, m - 1, d);
+
+        const weekdaysRu = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+        const weekdaysUk = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'Пʼятниця', 'Субота'];
+        const weekdaysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const monthsGenRu = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        const monthsGenUk = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
+        const monthsGenEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const wdList = isUk ? weekdaysUk : (isRu ? weekdaysRu : weekdaysEn);
+        if (weekdayEl) weekdayEl.textContent = wdList[selDateObj.getDay()];
+        if (fulldateEl) {
+          fulldateEl.textContent = (isUk || isRu)
+            ? `${d} ${(isUk ? monthsGenUk : monthsGenRu)[m - 1]} ${y}`
+            : `${monthsGenEn[m - 1]} ${d}, ${y}`;
+        }
+
+        const events = (state.events || []).filter(e => e.date === selectedDate);
+        events.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+        if (badgeEl) {
+          const t = I18N[currentLang] || I18N.ru;
+          badgeEl.textContent = typeof t.calTasksCount === 'function' ? t.calTasksCount(events.length) : `${events.length} дел`;
+        }
+
+        listEl.innerHTML = '';
+
+        if (events.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'calendar-empty-agenda';
+          const t = I18N[currentLang] || I18N.ru;
+          empty.textContent = t.calNoEvents || (isUk ? 'На цей день запланованих справ немає' : (isRu ? 'На этот день запланированных дел нет' : 'No events scheduled for this day'));
+          listEl.appendChild(empty);
+          return;
+        }
+
+        events.forEach(evt => {
+          const card = document.createElement('div');
+          card.className = 'calendar-event-card';
+
+          const timeDisplay = (!evt.time || evt.time === 'all-day')
+            ? (isRu ? 'Весь день' : 'All day')
+            : evt.time;
+
+          const gcalUrl = buildGoogleCalendarUrl(evt);
+
+          card.innerHTML = `
+            <div class="calendar-event-time">${timeDisplay}</div>
+            <div class="calendar-event-main">
+              <div class="calendar-event-title">${esc(evt.title)}</div>
+              <div class="calendar-event-meta">
+                <span class="calendar-event-tag tag-${esc(evt.tag || 'general')}">
+                  ${getTagEmoji(evt.tag)} ${getTagLabel(evt.tag)}
+                </span>
+                ${evt.notes ? `<span class="calendar-event-notes">${esc(evt.notes)}</span>` : ''}
+              </div>
+            </div>
+            <div class="calendar-event-actions">
+              <a href="${gcalUrl}" target="_blank" rel="noopener noreferrer" class="cal-event-btn gcal" title="Открыть в Google Calendar">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>GCal</span>
+              </a>
+              <button type="button" class="cal-event-btn del" title="${(I18N[currentLang] || I18N.ru).del || 'Удалить'}">×</button>
+            </div>
+          `;
+
+          const delBtn = card.querySelector('.cal-event-btn.del');
+          delBtn.addEventListener('click', async () => {
+            state.events = state.events.filter(e => e.id !== evt.id);
+            saveLocal();
+            renderMonthGrid();
+            renderAgenda();
+            updateBadgeOverlay();
+            apiAction('delete_event', { id: evt.id });
+          });
+
+          listEl.appendChild(card);
+        });
+      }
+
+      function buildGoogleCalendarUrl(evt) {
+        const title = encodeURIComponent(evt.title || 'Встреча');
+        const details = encodeURIComponent(evt.notes || 'Создано через Personal Diary');
+        const rawDate = (evt.date || getTodayISO()).replace(/-/g, '');
+        let datesParam = '';
+        if (evt.time && evt.time !== 'all-day' && evt.time.includes(':')) {
+          const [hh, mm] = evt.time.split(':');
+          const start = `${rawDate}T${hh}${mm}00`;
+          const endH = String((Number(hh) + 1) % 24).padStart(2, '0');
+          const end = `${rawDate}T${endH}${mm}00`;
+          datesParam = `${start}/${end}`;
+        } else {
+          datesParam = `${rawDate}/${rawDate}`;
+        }
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${datesParam}&details=${details}`;
+      }
+
+      function exportICS() {
+        const events = state.events || [];
+        if (events.length === 0) {
+          alert(currentLang === 'uk' ? 'У календарі поки немає запланованих справ.' : (currentLang === 'ru' ? 'В календаре пока нет запланированных дел.' : 'No events in calendar yet.'));
+          return;
+        }
+
+        let ics = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Personal Diary//Atmospheric Calendar//EN',
+          'CALSCALE:GREGORIAN',
+          'METHOD:PUBLISH'
+        ];
+
+        events.forEach(e => {
+          const rawDate = (e.date || getTodayISO()).replace(/-/g, '');
+          let dtstart = '';
+          let dtend = '';
+          if (e.time && e.time !== 'all-day' && e.time.includes(':')) {
+            const [hh, mm] = e.time.split(':');
+            dtstart = `:${rawDate}T${hh}${mm}00`;
+            const endH = String((Number(hh) + 1) % 24).padStart(2, '0');
+            dtend = `:${rawDate}T${endH}${mm}00`;
+          } else {
+            dtstart = `;VALUE=DATE:${rawDate}`;
+            dtend = `;VALUE=DATE:${rawDate}`;
+          }
+
+          ics.push('BEGIN:VEVENT');
+          ics.push(`UID:${e.id}@personal-diary.local`);
+          ics.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`);
+          ics.push(`DTSTART${dtstart}`);
+          ics.push(`DTEND${dtend}`);
+          ics.push(`SUMMARY:${(e.title || 'Event').replace(/,/g, '\\,')}`);
+          if (e.notes) ics.push(`DESCRIPTION:${e.notes.replace(/,/g, '\\,').replace(/\n/g, '\\n')}`);
+          ics.push('END:VEVENT');
+        });
+
+        ics.push('END:VCALENDAR');
+
+        const blob = new Blob([ics.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'diary_schedule.ics';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      async function speakSchedule() {
+        const isUk = currentLang === 'uk';
+        const isRu = currentLang === 'ru';
+        const todayIso = getTodayISO();
+        const todayEvents = (state.events || []).filter(e => e.date === todayIso);
+        const pendingStickers = (state.stickers || []).filter(s => !s.completed);
+
+        let lines = [];
+        if (isUk) {
+          lines.push(`Сьогодні ${new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })}.`);
+          if (todayEvents.length > 0) {
+            lines.push(`У календарі заплановано ${todayEvents.length} справ:`);
+            todayEvents.forEach(e => {
+              const t = e.time && e.time !== 'all-day' ? ` о ${e.time}` : '';
+              lines.push(`${e.title}${t}.`);
+            });
+          } else {
+            lines.push('На сьогодні запланованих зустрічей у календарі немає.');
+          }
+
+          if (pendingStickers.length > 0) {
+            lines.push(`Також є ${pendingStickers.length} невиконаних експрес-завдань:`);
+            pendingStickers.slice(0, 3).forEach(s => lines.push(`${s.text}.`));
+          }
+        } else if (isRu) {
+          lines.push(`Сегодня ${new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}.`);
+          if (todayEvents.length > 0) {
+            lines.push(`В календаре запланировано ${todayEvents.length} дел:`);
+            todayEvents.forEach(e => {
+              const t = e.time && e.time !== 'all-day' ? ` в ${e.time}` : '';
+              lines.push(`${e.title}${t}.`);
+            });
+          } else {
+            lines.push('На сегодня запланированных встреч в календаре нет.');
+          }
+
+          if (pendingStickers.length > 0) {
+            lines.push(`Также есть ${pendingStickers.length} невыполненных экспресс-задач:`);
+            pendingStickers.slice(0, 3).forEach(s => lines.push(`${s.text}.`));
+          }
+        } else {
+          lines.push(`Today is ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`);
+          if (todayEvents.length > 0) {
+            lines.push(`You have ${todayEvents.length} scheduled events:`);
+            todayEvents.forEach(e => {
+              const t = e.time && e.time !== 'all-day' ? ` at ${e.time}` : '';
+              lines.push(`${e.title}${t}.`);
+            });
+          } else {
+            lines.push('No scheduled events for today.');
+          }
+
+          if (pendingStickers.length > 0) {
+            lines.push(`You also have ${pendingStickers.length} express tasks:`);
+            pendingStickers.slice(0, 3).forEach(s => lines.push(`${s.text}.`));
+          }
+        }
+
+        const speechText = lines.join(' ');
+
+        const btn = document.getElementById('calSpeakAgendaBtn');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+          const btnText = isUk ? 'Озвучую...' : (isRu ? 'Озвучиваю...' : 'Speaking...');
+          btn.innerHTML = `<span>⏳</span><span>${btnText}</span>`;
+          btn.disabled = true;
+        }
+
+        try {
+          const voice = (window.getSettings ? window.getSettings().voice : 'Kore') || 'Kore';
+          const r = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: speechText, voice })
+          });
+
+          if (r.ok) {
+            const data = await r.json();
+            if (data.audio && typeof playBase64Audio === 'function') {
+              await playBase64Audio(data.audio);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('[calendar] server TTS error, falling back to browser synthesis:', e);
+        } finally {
+          if (btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+          }
+        }
+
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(speechText);
+          utter.lang = isUk ? 'uk-UA' : (isRu ? 'ru-RU' : 'en-US');
+          utter.rate = 1.0;
+          window.speechSynthesis.speak(utter);
+        }
+      }
+
+      function openModal() {
+        const backdrop = document.getElementById('calendarModalBackdrop');
+        if (!backdrop) return;
+        selectedDate = getTodayISO();
+        const [y, m] = selectedDate.split('-').map(Number);
+        viewYear = y;
+        viewMonth = m - 1;
+
+        renderMonthGrid();
+        renderAgenda();
+
+        backdrop.classList.remove('hidden');
+        backdrop.setAttribute('aria-hidden', 'false');
+
+        const creator = document.getElementById('calEventCreator');
+        if (creator) creator.classList.add('hidden');
+      }
+
+      function closeModal() {
+        const backdrop = document.getElementById('calendarModalBackdrop');
+        if (!backdrop) return;
+        backdrop.classList.add('hidden');
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      function handleLiveUpdate(msg) {
+        if (!msg) return;
+        if (msg.action === 'add_event' && msg.event) {
+          state.events.push(msg.event);
+        } else if (msg.action === 'add_sticker' && msg.sticker) {
+          state.stickers.push(msg.sticker);
+        }
+        saveLocal();
+        updateUI();
+
+        const calObj = document.getElementById('calendarObject');
+        if (calObj) {
+          calObj.classList.add('glow');
+          setTimeout(() => calObj.classList.remove('glow'), 1200);
+        }
+      }
+
+      function updateUI() {
+        const t = I18N[currentLang] || I18N.ru;
+        const isUk = currentLang === 'uk';
+        const isRu = currentLang === 'ru';
+        const titleEl = document.getElementById('calendarModalTitle');
+        const sublineEl = document.getElementById('calendarSubline');
+        const syncTitleEl = document.getElementById('calSyncTitle');
+        const speakBtnText = document.getElementById('calSpeakBtnText');
+        const addEventBtnText = document.getElementById('calAddEventBtnText');
+        const todayBtn = document.getElementById('calTodayBtn');
+
+        if (titleEl) titleEl.textContent = t.calendarTitle || 'Календарь и расписание';
+        if (sublineEl) sublineEl.textContent = t.calendarSubline || 'Google Calendar Sync & Voice Tasks';
+        if (syncTitleEl) syncTitleEl.textContent = t.calSyncTitle || 'Синхронизация и экспорт:';
+        if (speakBtnText) speakBtnText.textContent = t.calSpeakPlans || 'Озвучить планы';
+        if (addEventBtnText) addEventBtnText.textContent = t.calAddEvent || 'Добавить дело';
+        if (todayBtn) todayBtn.textContent = t.calToday || 'Сегодня';
+
+        const exportIcsBtn = document.getElementById('calExportIcsBtn');
+        if (exportIcsBtn) {
+          const span = exportIcsBtn.querySelector('span');
+          if (span) span.textContent = t.calDownloadIcs || (isUk ? 'Завантажити .ICS' : (isRu ? 'Скачать .ICS' : 'Download .ICS'));
+          exportIcsBtn.setAttribute('title', isUk ? 'Завантажити файл календаря .ICS' : (isRu ? 'Скачать файл календаря .ICS' : 'Download .ICS calendar file'));
+        }
+
+        const exportGCalBtn = document.getElementById('calExportGCalBtn');
+        if (exportGCalBtn) {
+          exportGCalBtn.setAttribute('title', isUk ? 'Синхронізувати з Google Calendar' : (isRu ? 'Синхронизировать с Google Calendar' : 'Sync with Google Calendar'));
+        }
+
+        const creatorTitle = document.getElementById('calCreatorTitle');
+        if (creatorTitle) creatorTitle.textContent = t.calNewEventHeading || 'Новое событие';
+        const newTitleInp = document.getElementById('calNewEventTitle');
+        if (newTitleInp) newTitleInp.placeholder = t.calTitlePlaceholder || 'Название встречи или дела...';
+        const newNotesInp = document.getElementById('calNewEventNotes');
+        if (newNotesInp) newNotesInp.placeholder = t.calNotesPlaceholder || 'Заметки или ссылка...';
+        const cancelBtn = document.getElementById('calCancelEventBtn');
+        if (cancelBtn) cancelBtn.textContent = t.calCancelEvent || 'Отмена';
+        const saveBtn = document.getElementById('calSaveEventBtn');
+        if (saveBtn) saveBtn.textContent = t.calSaveEvent || 'Сохранить';
+
+        const tagSelect = document.getElementById('calNewEventTag');
+        if (tagSelect && tagSelect.options.length >= 5) {
+          tagSelect.options[0].textContent = isUk ? '💼 Робота' : (isRu ? '💼 Работа' : '💼 Work');
+          tagSelect.options[1].textContent = isUk ? '🌱 Особисте' : (isRu ? '🌱 Личное' : '🌱 Personal');
+          tagSelect.options[2].textContent = isUk ? '🤝 Зустріч' : (isRu ? '🤝 Встреча' : '🤝 Meeting');
+          tagSelect.options[3].textContent = isUk ? '⚡ Фокус' : (isRu ? '⚡ Фокус' : '⚡ Focus');
+          tagSelect.options[4].textContent = isUk ? '🔔 Нагадування' : (isRu ? '🔔 Напоминание' : '🔔 Reminder');
+        }
+
+        updateBadgeOverlay();
+        renderStickers();
+        renderMonthGrid();
+        renderAgenda();
+      }
+
+      function init() {
+        loadLocal();
+        syncFetch();
+        updateUI();
+
+        const calObj = document.getElementById('calendarObject');
+        if (calObj) calObj.addEventListener('click', openModal);
+
+        const nbCalBtn = document.getElementById('notebookCalendarBtn');
+        if (nbCalBtn) nbCalBtn.addEventListener('click', openModal);
+
+        const closeBtn = document.getElementById('closeCalendarModalBtn');
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+        const backdrop = document.getElementById('calendarModalBackdrop');
+        if (backdrop) {
+          backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal();
+          });
+        }
+
+        const addStkBtn = document.getElementById('btnAddExpressStickerBtn');
+        if (addStkBtn) {
+          addStkBtn.addEventListener('click', () => {
+            addNewSticker();
+          });
+        }
+
+        const prevBtn = document.getElementById('calPrevMonthBtn');
+        const nextBtn = document.getElementById('calNextMonthBtn');
+        const todayBtn = document.getElementById('calTodayBtn');
+
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            viewMonth--;
+            if (viewMonth < 0) {
+              viewMonth = 11;
+              viewYear--;
+            }
+            renderMonthGrid();
+          });
+        }
+
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            viewMonth++;
+            if (viewMonth > 11) {
+              viewMonth = 0;
+              viewYear++;
+            }
+            renderMonthGrid();
+          });
+        }
+
+        if (todayBtn) {
+          todayBtn.addEventListener('click', () => {
+            selectedDate = getTodayISO();
+            const [y, m] = selectedDate.split('-').map(Number);
+            viewYear = y;
+            viewMonth = m - 1;
+            renderMonthGrid();
+            renderAgenda();
+          });
+        }
+
+        const speakBtn = document.getElementById('calSpeakAgendaBtn');
+        if (speakBtn) speakBtn.addEventListener('click', speakSchedule);
+
+        const icsBtn = document.getElementById('calExportIcsBtn');
+        if (icsBtn) icsBtn.addEventListener('click', exportICS);
+
+        const gcalBtn = document.getElementById('calExportGCalBtn');
+        if (gcalBtn) {
+          gcalBtn.addEventListener('click', () => {
+            window.open('https://calendar.google.com/calendar/', '_blank', 'noopener,noreferrer');
+          });
+        }
+
+        const creator = document.getElementById('calEventCreator');
+        const openCreatorBtn = document.getElementById('calOpenNewEventBtn');
+        const closeCreatorBtn = document.getElementById('calCloseCreatorBtn');
+        const cancelEventBtn = document.getElementById('calCancelEventBtn');
+
+        if (openCreatorBtn && creator) {
+          openCreatorBtn.addEventListener('click', () => {
+            creator.classList.toggle('hidden');
+            if (!creator.classList.contains('hidden')) {
+              const titleInput = document.getElementById('calNewEventTitle');
+              if (titleInput) {
+                titleInput.value = '';
+                titleInput.focus();
+              }
+            }
+          });
+        }
+
+        if (closeCreatorBtn && creator) {
+          closeCreatorBtn.addEventListener('click', () => creator.classList.add('hidden'));
+        }
+        if (cancelEventBtn && creator) {
+          cancelEventBtn.addEventListener('click', () => creator.classList.add('hidden'));
+        }
+
+        async function handleSaveEvent(openGCal = false) {
+          const titleInput = document.getElementById('calNewEventTitle');
+          const timeInput = document.getElementById('calNewEventTime');
+          const tagSelect = document.getElementById('calNewEventTag');
+          const notesInput = document.getElementById('calNewEventNotes');
+
+          const title = (titleInput ? titleInput.value : '').trim();
+          if (!title) {
+            if (titleInput) titleInput.focus();
+            return;
+          }
+
+          const time = (timeInput ? timeInput.value : '').trim() || 'all-day';
+          const tag = (tagSelect ? tagSelect.value : 'work');
+          const notes = (notesInput ? notesInput.value : '').trim();
+
+          const newEvt = {
+            id: `evt_${Date.now()}`,
+            title,
+            date: selectedDate,
+            time,
+            notes,
+            tag,
+            created: new Date().toISOString()
+          };
+
+          state.events.push(newEvt);
+          saveLocal();
+          renderMonthGrid();
+          renderAgenda();
+          updateBadgeOverlay();
+
+          if (creator) creator.classList.add('hidden');
+          if (titleInput) titleInput.value = '';
+          if (notesInput) notesInput.value = '';
+
+          apiAction('add_event', {
+            title: newEvt.title,
+            date: newEvt.date,
+            time: newEvt.time,
+            notes: newEvt.notes,
+            tag: newEvt.tag
+          });
+
+          if (openGCal) {
+            const url = buildGoogleCalendarUrl(newEvt);
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }
+        }
+
+        const saveEventBtn = document.getElementById('calSaveEventBtn');
+        if (saveEventBtn) saveEventBtn.addEventListener('click', () => handleSaveEvent(false));
+
+        const saveAndGCalBtn = document.getElementById('calSaveAndGCalBtn');
+        if (saveAndGCalBtn) saveAndGCalBtn.addEventListener('click', () => handleSaveEvent(true));
+
+        document.addEventListener('keydown', (e) => {
+          if (backdrop && !backdrop.classList.contains('hidden') && e.key === 'Escape') {
+            e.preventDefault();
+            closeModal();
+          }
+        });
+      }
+
+      return {
+        init,
+        openModal,
+        closeModal,
+        updateUI,
+        renderStickers,
+        addNewSticker,
+        speakSchedule,
+        handleLiveUpdate,
+        getState: () => state
+      };
+    })();
+
+    window.diaryCalendar = diaryCalendar;
+    try {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => diaryCalendar.init());
+      } else {
+        diaryCalendar.init();
+      }
+    } catch (e) {
+      console.warn('[calendar] init error:', e);
+    }
 
     /* ── Walkie-Talkie Microphone (4 States) ─────────────────────────────── */
     function setMicState(state) {
@@ -5561,6 +8648,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           targetSession.turns.push({ who: 'diary', text: d.answer });
           setMicState('replying');
+          if (window.diaryBilling) {
+            const inSec = Math.max(1, (wavBase64.length * 0.75) / (16000 * 2));
+            const outSec = d.audio ? ((d.audio.length * 0.75) / (24000 * 2)) : 0;
+            window.diaryBilling.addWalkie(inSec, outSec);
+          }
           if (d.audio) {
             await playBase64Audio(d.audio);
           }
@@ -5722,16 +8814,34 @@ document.addEventListener('DOMContentLoaded', () => {
         liveMicSource = liveMicCtx.createMediaStreamSource(liveMicStream);
         liveMicSource.connect(micAnalyser);
 
+        // 🔴 Гейт по тишине. Live API берёт деньги за ВСЁ время входящего потока,
+        // включая молчание — это подтверждено ответом Google, ставка та же
+        // 32 токена в секунду. В реальном профиле разговора речь занимает
+        // 4.6 минуты из 29: без гейта пять шестых входящего счёта — оплаченная
+        // тишина. Шлём только когда слышно голос, плюс хвост: по нему серверный
+        // VAD понимает, что реплика закончилась, и без хвоста ход не закрывался бы.
+        const VAD_LEVEL = 0.012;        // порог громкости (RMS)
+        const VAD_TAIL_MS = 700;        // сколько ещё шлём после последнего звука
+        let lastVoiceAt = 0;
         const liveProc = liveMicCtx.createScriptProcessor(4096, 1, 1);
         liveProc.onaudioprocess = (e) => {
           if (!reactorWs || reactorWs.readyState !== 1) return;
           const f = e.inputBuffer.getChannelData(0);
+          let sum = 0;
+          for (let i = 0; i < f.length; i++) sum += f[i] * f[i];
+          const rms = Math.sqrt(sum / f.length);
+          const now = performance.now();
+          if (rms >= VAD_LEVEL) lastVoiceAt = now;
+          if (!lastVoiceAt || now - lastVoiceAt > VAD_TAIL_MS) return;   // тишина: не шлём и не платим
           const pcm = new Int16Array(f.length);
           for (let i = 0; i < f.length; i++) {
             const v = Math.max(-1, Math.min(1, f[i]));
             pcm[i] = v < 0 ? v * 32768 : v * 32767;
           }
           reactorWs.send(pcm.buffer);
+          if (window.diaryBilling) {
+            window.diaryBilling.addLiveInput(4096 / 16000);
+          }
           if (++liveSentChunks === 1) console.log('[reactor] звук пошёл в мост');
         };
         liveMicSource.connect(liveProc);
@@ -5819,6 +8929,9 @@ document.addEventListener('DOMContentLoaded', () => {
           // ответа молча выбрасывался — выглядело как «реактор не отвечает».
           if (event.data instanceof ArrayBuffer) {
             playLivePCM(event.data);
+            if (window.diaryBilling) {
+              window.diaryBilling.addLiveOutput(event.data.byteLength / 48000);
+            }
             lastActiveSoundTime = performance.now();
             return;
           }
@@ -5832,6 +8945,10 @@ document.addEventListener('DOMContentLoaded', () => {
             nextPlayTime = 0;
             isInterruptedFlash = true;
             interruptedProgress = 0;
+          } else if (msg.type === 'calendar_update') {
+            if (window.diaryCalendar) {
+              window.diaryCalendar.handleLiveUpdate(msg);
+            }
           } else if (msg.type === 'error') {
             showReactorSubtitle('⚠ ' + msg.error);
           }
@@ -5842,6 +8959,25 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {}
     }
 
+    const kettleWordQueue = [];
+
+    function queueKettleWords(text) {
+      if (!text || typeof text !== 'string') return;
+      const clean = text
+        .replace(/[*_#`~[\](){}<>|\\]/g, ' ')
+        .replace(/[.,/#!$%^&*;:{}=\-_`~()?"'«»—–]/g, ' ')
+        .trim();
+      const words = clean.split(/\s+/).filter(w => w.length >= 2);
+      for (const w of words.slice(0, 10)) {
+        kettleWordQueue.push(w.toUpperCase());
+      }
+      if (kettleWordQueue.length > 24) {
+        kettleWordQueue.splice(0, kettleWordQueue.length - 24);
+      }
+      // Force immediate emission of first queued word
+      kettleLastWordTime = 0;
+    }
+
     function showReactorSubtitle(text) {
       if (!reactorSubtitle) return;
       reactorSubtitle.textContent = text;
@@ -5849,6 +8985,215 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         reactorSubtitle.classList.remove('visible');
       }, 4500);
+
+      const curL = (typeof LANDSCAPES !== 'undefined' && typeof getCurrentLandscape === 'function')
+        ? getCurrentLandscape() : null;
+      if (curL === 'black_lodge') {
+        queueKettleWords(text);
+      }
+    }
+    window.showReactorSubtitle = showReactorSubtitle;
+    window.queueKettleWords = queueKettleWords;
+
+    /* ── Phillip Jeffries Kettle Steam & Word Mist Engine ──────────────── */
+    const kettleSteamParticles = [];
+    const kettleSteamWords = [];
+    let kettleLastWordTime = 0;
+    const iconicTwinPeaksWords = [
+      "JUDY", "ELECTRICITY", "THE DREAMER", "BLUE ROSE", "COOPER", 
+      "430", "RICHARD", "LINDA", "WE LIVE INSIDE", "A DREAM",
+      "FIRE WALK", "WITH ME", "WHO DO YOU THINK", "THIS IS THERE"
+    ];
+
+    function spawnSteamWord(text, spoutX, spoutY, dpr) {
+      if (!text) return;
+      kettleSteamWords.push({
+        text: text,
+        x: spoutX + (Math.random() - 0.5) * 6 * dpr,
+        y: spoutY - 4 * dpr,
+        vx: (1.1 + Math.random() * 1.5) * dpr,
+        vy: (-2.0 - Math.random() * 1.8) * dpr,
+        scale: 0.7,
+        targetScale: 1.35 + Math.random() * 0.35,
+        alpha: 0.98,
+        decay: 0.0055 + Math.random() * 0.004,
+        rotation: (-0.08 + Math.random() * 0.16),
+        rotSpeed: (-0.0015 + Math.random() * 0.003),
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: 0.03 + Math.random() * 0.03
+      });
+    }
+    window.spawnSteamWord = spawnSteamWord;
+
+    function renderJeffriesKettleSteam(ctx, cx, cy, cw, ch, dpr, isSpeaking, isListening, speakerVol, micVol) {
+      // 1. Spout tip relative to kettle center (kettle is half canvas size because canvas is 200% wide)
+      const kettleW = cw / 2;
+      const kettleH = ch / 2;
+      const spoutX = cx + (kettleW * 0.285);
+      const spoutY = cy - (kettleH * 0.245);
+
+      // 2. Center glass tube electric arc:
+      const arcX = cx - (kettleW * 0.035);
+      const arcTopY = cy - (kettleH * 0.11);
+      const arcBottomY = cy + (kettleH * 0.10);
+      const arcHeight = arcBottomY - arcTopY;
+
+      // Draw dynamic electric arc inside the tube
+      const arcIntensity = isSpeaking ? (0.6 + speakerVol * 0.8) : (isListening ? (0.4 + micVol * 0.6) : 0.25);
+      ctx.save();
+      ctx.strokeStyle = `rgba(180, 230, 255, ${Math.min(1, arcIntensity)})`;
+      ctx.shadowColor = '#5BC0EB';
+      ctx.shadowBlur = (14 + arcIntensity * 20) * dpr;
+      ctx.lineWidth = (2 + (isSpeaking ? 1.5 : 0)) * dpr;
+
+      // Jagged lightning bolt
+      ctx.beginPath();
+      ctx.moveTo(arcX, arcBottomY);
+      const segments = 6;
+      let curX = arcX;
+      for (let s = 1; s < segments; s++) {
+        const segY = arcBottomY - (s / segments) * arcHeight;
+        curX = arcX + (Math.random() - 0.5) * (14 * dpr * arcIntensity);
+        ctx.lineTo(curX, segY);
+      }
+      ctx.lineTo(arcX, arcTopY);
+      ctx.stroke();
+
+      // Branching fork
+      if (isSpeaking || arcIntensity > 0.35) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${arcIntensity * 0.9})`;
+        ctx.lineWidth = 1.2 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(arcX, arcBottomY - arcHeight * 0.45);
+        ctx.lineTo(arcX + (Math.random() - 0.5) * 12 * dpr, arcBottomY - arcHeight * 0.65);
+        ctx.lineTo(arcX + (Math.random() - 0.5) * 10 * dpr, arcTopY + 8 * dpr);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 3. Steam particle generation:
+      const emitCount = isSpeaking ? (3 + Math.floor(speakerVol * 7)) : (isListening ? 2 : (Math.random() < 0.45 ? 1 : 0));
+      for (let i = 0; i < emitCount; i++) {
+        kettleSteamParticles.push({
+          x: spoutX + (Math.random() - 0.5) * (8 * dpr),
+          y: spoutY + (Math.random() - 0.5) * (8 * dpr),
+          vx: (1.5 + Math.random() * 2.2 + (speakerVol * 2.5)) * dpr,
+          vy: (-2.8 - Math.random() * 3.5 - (speakerVol * 4.0)) * dpr,
+          radius: (14 + Math.random() * 10) * dpr,
+          growth: (0.55 + Math.random() * 0.65) * dpr,
+          alpha: 0.52 + Math.random() * 0.25,
+          decay: 0.009 + Math.random() * 0.008,
+          wobble: Math.random() * Math.PI * 2,
+          wobbleSpeed: 0.04 + Math.random() * 0.05
+        });
+      }
+
+      // Limit particle pool
+      if (kettleSteamParticles.length > 220) {
+        kettleSteamParticles.splice(0, kettleSteamParticles.length - 220);
+      }
+
+      // Render & update steam particles
+      for (let i = kettleSteamParticles.length - 1; i >= 0; i--) {
+        const p = kettleSteamParticles[i];
+        p.x += p.vx + Math.sin(p.wobble) * (0.8 * dpr);
+        p.y += p.vy;
+        p.wobble += p.wobbleSpeed;
+        p.radius += p.growth;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0.01 || p.y < -100) {
+          kettleSteamParticles.splice(i, 1);
+          continue;
+        }
+
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+        grad.addColorStop(0, `rgba(245, 245, 252, ${p.alpha * 0.65})`);
+        grad.addColorStop(0.5, `rgba(220, 225, 235, ${p.alpha * 0.35})`);
+        grad.addColorStop(1, 'rgba(210, 215, 225, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 4. Steam Words Logic:
+      const now = performance.now();
+      const hasQueue = kettleWordQueue.length > 0;
+      const wordInterval = hasQueue ? 750 : (isSpeaking ? 1100 : 2600);
+      if (now - kettleLastWordTime > wordInterval) {
+        kettleLastWordTime = now;
+        let chosenWord = '';
+
+        if (hasQueue) {
+          chosenWord = kettleWordQueue.shift();
+        } else if (isSpeaking) {
+          chosenWord = iconicTwinPeaksWords[Math.floor(Math.random() * iconicTwinPeaksWords.length)];
+        } else if (Math.random() < 0.6) {
+          chosenWord = iconicTwinPeaksWords[Math.floor(Math.random() * iconicTwinPeaksWords.length)];
+        }
+
+        if (chosenWord) {
+          spawnSteamWord(chosenWord, spoutX, spoutY, dpr);
+        }
+      }
+
+      // Render & update steam words
+      if (kettleSteamWords.length > 25) {
+        kettleSteamWords.splice(0, kettleSteamWords.length - 25);
+      }
+
+      for (let i = kettleSteamWords.length - 1; i >= 0; i--) {
+        const sw = kettleSteamWords[i];
+        sw.x += sw.vx + Math.sin(sw.wobble) * (0.8 * dpr);
+        sw.y += sw.vy;
+        sw.wobble += sw.wobbleSpeed;
+        sw.rotation += sw.rotSpeed;
+        if (sw.scale < sw.targetScale) {
+          sw.scale += 0.007;
+        }
+        sw.alpha -= sw.decay;
+
+        if (sw.alpha <= 0.01 || sw.y < -150) {
+          kettleSteamWords.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.translate(sw.x, sw.y);
+        ctx.rotate(sw.rotation);
+        ctx.scale(sw.scale, sw.scale);
+
+        // Soft steam halo puff behind the word
+        const haloR = (36 + sw.text.length * 3.5) * dpr;
+        const puffGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, haloR);
+        puffGrad.addColorStop(0, `rgba(240, 245, 255, ${sw.alpha * 0.32})`);
+        puffGrad.addColorStop(0.5, `rgba(215, 225, 240, ${sw.alpha * 0.15})`);
+        puffGrad.addColorStop(1, 'rgba(200, 215, 235, 0)');
+        ctx.fillStyle = puffGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, haloR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = `italic 700 ${19 * dpr}px "Cinzel Decorative", "Playfair Display", Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Outer ethereal glow (electric mystery)
+        ctx.shadowColor = 'rgba(160, 220, 255, 0.9)';
+        ctx.shadowBlur = 14 * dpr;
+        ctx.fillStyle = `rgba(255, 255, 255, ${sw.alpha * 0.95})`;
+        ctx.fillText(sw.text, 0, 0);
+
+        // Warm copper furnace highlight
+        ctx.shadowColor = '#FFD166';
+        ctx.shadowBlur = 24 * dpr;
+        ctx.fillStyle = `rgba(255, 245, 225, ${sw.alpha * 0.4})`;
+        ctx.fillText(sw.text, 0, 0);
+
+        ctx.restore();
+      }
     }
 
     function reactorRenderLoop() {
@@ -5865,10 +9210,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const ctx = reactorCanvas.getContext('2d');
       ctx.clearRect(0, 0, reactorCanvas.width, reactorCanvas.height);
 
-      // Громкость берём по НИЖНЕЙ трети спектра: там живёт голос, а верх — шум,
-      // который на среднем по всем полосам размывает разницу между речью и тишиной.
-      // Анализаторы стоят в разных контекстах (вход 16 кГц, выход общий), поэтому
-      // доля полосы у них разная — усредняем по долям, а не по числу корзин.
       function bandVolume(an) {
         if (!an) return 0;
         const d = new Uint8Array(an.frequencyBinCount);
@@ -5879,15 +9220,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return (sum / upto) / 255;
       }
 
-      // Сглаживание: без него кольца дёргаются на каждом кадре и выглядят нервно.
       const micNow = bandVolume(micAnalyser);
       const spkNow = bandVolume(speakerAnalyser);
       micVol = micVol * 0.75 + micNow * 0.25;
       speakerVol = speakerVol * 0.75 + spkNow * 0.25;
 
-      // Пока дневник говорит, его же звук попадает в микрофон. Эхоподавление
-      // браузера снимает не всё, поэтому вход глушим, когда идёт ответ, —
-      // иначе реактор одновременно «слушает» и «говорит».
       if (speakerVol > 0.06) micVol = Math.min(micVol, speakerVol * 0.35);
 
       const isSpeaking = speakerVol > 0.06;
@@ -5898,9 +9235,19 @@ document.addEventListener('DOMContentLoaded', () => {
         ? (LANDSCAPES.find(l => l.id === getCurrentLandscape()) || LANDSCAPES[0]) : null;
       const themeGlowCore = curL ? (curL.glowSpeak || '#FFD700') : '#FFD700';
       const themeGlowListen = curL ? (curL.glowListen || '#38BDF8') : '#38BDF8';
+      const isBlackLodge = curL && curL.id === 'black_lodge';
 
       if (reactorRigImg) {
-        if (isSpeaking) {
+        if (isBlackLodge) {
+          // Kettle boiling vibration & pressure glow
+          const shakeMag = isSpeaking ? (speakerVol * 8) : (isListening ? (micVol * 4) : 0.4);
+          const shakeX = (Math.random() - 0.5) * shakeMag;
+          const shakeY = (Math.random() - 0.5) * shakeMag;
+          const scale = 1 + (isSpeaking ? speakerVol * 0.04 : (isListening ? micVol * 0.02 : 0));
+          const glowPx = isSpeaking ? Math.round(20 + speakerVol * 60) : (isListening ? Math.round(14 + micVol * 35) : 8);
+          reactorRigImg.style.filter = `drop-shadow(0 0 ${glowPx}px rgba(255, 209, 102, 0.45)) drop-shadow(0 24px 50px rgba(0,0,0,0.92))`;
+          reactorRigImg.style.transform = `translate(${shakeX.toFixed(1)}px, ${shakeY.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+        } else if (isSpeaking) {
           const glowPx = Math.round(18 + speakerVol * 65);
           const bright = (1 + speakerVol * 0.35).toFixed(2);
           const scale = (1 + speakerVol * 0.04).toFixed(3);
@@ -5921,61 +9268,65 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.save();
       const cx = (w * dpr) / 2;
       const cy = (h * dpr) / 2;
-      const baseR = (w * dpr) * 0.44;
+      const baseR = (w * dpr / 2) * 0.48;
 
-      reactorRotAngle += isSpeaking ? 0.02 : (isListening ? 0.012 : 0.003);
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 0.94, 0, Math.PI * 2);
-      ctx.strokeStyle = isSpeaking 
-        ? `rgba(255, 215, 0, ${0.25 + speakerVol * 0.6})`
-        : (isListening ? `rgba(56, 189, 248, ${0.25 + micVol * 0.6})` : 'rgba(255, 255, 255, 0.12)');
-      ctx.lineWidth = 2 * dpr;
-      ctx.stroke();
-
-      const numDots = 14;
-      for (let i = 0; i < numDots; i++) {
-        const angle = reactorRotAngle + (i * Math.PI * 2 / numDots);
-        const r = baseR * 0.72;
-        const x = cx + Math.cos(angle) * r;
-        const y = cy + Math.sin(angle) * r;
-        ctx.beginPath();
-        ctx.arc(x, y, 3 * dpr, 0, Math.PI * 2);
-        ctx.fillStyle = isSpeaking ? themeGlowCore : (isListening ? themeGlowListen : 'rgba(255, 255, 255, 0.35)');
-        ctx.fill();
-      }
-
-      if (isSpeaking) {
-        const pulseR = baseR * (0.32 + speakerVol * 0.24);
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
-        grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-        grad.addColorStop(0.35, themeGlowCore);
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      if (isBlackLodge) {
+        renderJeffriesKettleSteam(ctx, cx, cy, w * dpr, h * dpr, dpr, isSpeaking, isListening, speakerVol, micVol);
+      } else {
+        reactorRotAngle += isSpeaking ? 0.02 : (isListening ? 0.012 : 0.003);
 
         ctx.beginPath();
-        ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.shadowColor = themeGlowCore;
-        ctx.shadowBlur = 32 * dpr;
-        ctx.fill();
-      } else if (isListening) {
-        const pulseR = baseR * (0.28 + micVol * 0.25);
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
-        grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-        grad.addColorStop(0.35, themeGlowListen);
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.arc(cx, cy, baseR * 0.94, 0, Math.PI * 2);
+        ctx.strokeStyle = isSpeaking 
+          ? `rgba(255, 215, 0, ${0.25 + speakerVol * 0.6})`
+          : (isListening ? `rgba(56, 189, 248, ${0.25 + micVol * 0.6})` : 'rgba(255, 255, 255, 0.12)');
+        ctx.lineWidth = 2 * dpr;
+        ctx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.shadowColor = themeGlowListen;
-        ctx.shadowBlur = 28 * dpr;
-        ctx.fill();
+        const numDots = 14;
+        for (let i = 0; i < numDots; i++) {
+          const angle = reactorRotAngle + (i * Math.PI * 2 / numDots);
+          const r = baseR * 0.72;
+          const x = cx + Math.cos(angle) * r;
+          const y = cy + Math.sin(angle) * r;
+          ctx.beginPath();
+          ctx.arc(x, y, 3 * dpr, 0, Math.PI * 2);
+          ctx.fillStyle = isSpeaking ? themeGlowCore : (isListening ? themeGlowListen : 'rgba(255, 255, 255, 0.35)');
+          ctx.fill();
+        }
+
+        if (isSpeaking) {
+          const pulseR = baseR * (0.32 + speakerVol * 0.24);
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
+          grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+          grad.addColorStop(0.35, themeGlowCore);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.shadowColor = themeGlowCore;
+          ctx.shadowBlur = 32 * dpr;
+          ctx.fill();
+        } else if (isListening) {
+          const pulseR = baseR * (0.28 + micVol * 0.25);
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
+          grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+          grad.addColorStop(0.35, themeGlowListen);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.shadowColor = themeGlowListen;
+          ctx.shadowBlur = 28 * dpr;
+          ctx.fill();
+        }
       }
 
       ctx.restore();
 
-      if (isSilence) {
+      if (isSilence && !isBlackLodge) {
         setTimeout(() => {
           reactorAnimId = requestAnimationFrame(reactorRenderLoop);
         }, 55);
@@ -6421,18 +9772,26 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     // порт или другой браузер. Прежняя проверка смотрела только в браузер и гнала
     // на онбординг человека с рабочим ключом.
     const storedGeminiKey = localStorage.getItem('diary-gemini-api-key');
-    if (storedGeminiKey) {
-      setScreen('select');
-    } else {
-      fetch('/api/settings').then(r => r.json()).then(st => {
-        if (st.hasKey) { setScreen('select'); return; }
+    fetch('/api/settings').then(r => r.json()).then(st => {
+      if (st.hasKey || storedGeminiKey) {
+        if (st.apiKey && !storedGeminiKey) {
+          localStorage.setItem('diary-gemini-api-key', st.apiKey);
+        }
+        setScreen('select');
+        const ob = document.getElementById('obScreen');
+        if (ob) ob.hidden = true;
+        return;
+      }
+      setScreen('onboarding');
+      initAssistantGreeting();
+    }).catch(() => {
+      if (storedGeminiKey) {
+        setScreen('select');
+      } else {
         setScreen('onboarding');
         initAssistantGreeting();
-      }).catch(() => {
-        setScreen('onboarding');
-        initAssistantGreeting();
-      });
-    }
+      }
+    });
 
 
     /* ==========================================================================
@@ -6443,8 +9802,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'twin_peaks',
         bg: 'bg_twin_peaks.jpg',
         book: 'book_twin_peaks.png',
+        calendar: 'calendar_twin_peaks.png',
         reactor: 'reactor_twin_peaks.png',
         ru: { name: 'Снокуалми (Твин Пикс)', desc: 'Водопад, отель Salish Lodge и туман' },
+        uk: { name: 'Сноквалмі (Твін Пікс)', desc: 'Водоспад, готель Salish Lodge та туман' },
         en: { name: 'Snoqualmie (Twin Peaks)', desc: 'Misty falls, Salish Lodge & Douglas firs' },
         colors: ['#F4EEDC', '#16221A', '#8C2626', '#C69234'],
         glowSpeak: '#FFBA42',
@@ -6454,8 +9815,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'phangan',
         bg: 'bg_koh_phangan.jpg',
         book: 'book_phangan.png',
+        calendar: 'calendar_phangan.png',
         reactor: 'reactor_phangan.png',
         ru: { name: 'Ко Пханган (Таиланд)', desc: 'Закат над заливом, бирюза и пальмы' },
+        uk: { name: 'Ко Пханган (Таїланд)', desc: 'Захід сонця над затокою, бірюза та пальми' },
         en: { name: 'Koh Phangan (Thailand)', desc: 'Sunset over the Gulf of Thailand & palms' },
         colors: ['#FAF3E3', '#1E1611', '#E27D60', '#2AA198'],
         glowSpeak: '#FFA07A',
@@ -6465,8 +9828,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'banff',
         bg: 'bg_banff.jpg',
         book: 'book_banff.png',
+        calendar: 'calendar_banff.png',
         reactor: 'reactor_banff.png',
         ru: { name: 'Банф (Озеро Морейн)', desc: 'Ледниковая вода и вершины Скалистых гор' },
+        uk: { name: 'Банф (Озеро Морейн)', desc: 'Льодовикова вода та вершини Скелястих гір' },
         en: { name: 'Banff & Lake Moraine', desc: 'Glacial Lake Moraine & Canadian Rockies' },
         colors: ['#EEF5F5', '#121F28', '#1E828A', '#7FE0D6'],
         glowSpeak: '#7FE0D6',
@@ -6476,8 +9841,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'kyoto',
         bg: 'bg_kyoto.jpg',
         book: 'book_kyoto.png',
+        calendar: 'calendar_kyoto.png',
         reactor: 'reactor_kyoto.png',
         ru: { name: 'Киото (Арасияма)', desc: 'Бамбуковая роща, мох и дзен-покой' },
+        uk: { name: 'Кіото (Арасіяма)', desc: 'Бамбуковий гай, мох та дзен-спокій' },
         en: { name: 'Kyoto Arashiyama', desc: 'Sagano bamboo grove, moss & zen serenity' },
         colors: ['#F4F2E6', '#151814', '#A93226', '#5B7E54'],
         glowSpeak: '#E9C46A',
@@ -6487,8 +9854,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'iceland',
         bg: 'bg_iceland.jpg',
         book: 'book_iceland.png',
+        calendar: 'calendar_iceland.png',
         reactor: 'reactor_iceland.png',
         ru: { name: 'Исландия (Северное сияние)', desc: 'Гора Киркьюфедль и сияние Авроры' },
+        uk: { name: 'Ісландія (Північне сяйво)', desc: 'Гора Кіркʼюфетль та сяйво Аврори' },
         en: { name: 'Iceland (Kirkjufell & Aurora)', desc: 'Kirkjufell, polar night & Aurora Borealis' },
         colors: ['#EAE6DF', '#13161C', '#00F5A0', '#7B2CBF'],
         glowSpeak: '#00F5A0',
@@ -6498,8 +9867,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'wadi_rum',
         bg: 'bg_wadi_rum.jpg',
         book: 'book_wadi_rum.png',
+        calendar: 'calendar_wadi_rum.png',
         reactor: 'reactor_wadi_rum.png',
         ru: { name: 'Вади-Рам (Лунная долина)', desc: 'Красные каньоны и звёздный купол' },
+        uk: { name: 'Ваді-Рам (Місячна долина)', desc: 'Червоні каньйони та зоряний купол' },
         en: { name: 'Wadi Rum (Jordan Desert)', desc: 'Red sandstone canyons & the Milky Way' },
         colors: ['#F7EFE1', '#221410', '#C15C3D', '#E0A96D'],
         glowSpeak: '#FF9F1C',
@@ -6509,12 +9880,28 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         id: 'kerala',
         bg: 'south_india_bg.jpg',
         book: 'book_kerala.png',
+        calendar: 'calendar_kerala.png',
         reactor: 'reactor_kerala.png',
         ru: { name: 'Керала (Южная Индия)', desc: 'Классический колам, латунь и пальмовые листья' },
+        uk: { name: 'Керала (Південна Індія)', desc: 'Класичний колам, латунь та пальмове листя' },
         en: { name: 'Kerala & South India', desc: 'Classic Kolam, brass & palm leaves' },
         colors: ['#EFE4D0', '#1A212D', '#D4AF37', '#8C6207'],
         glowSpeak: '#FFD700',
         glowListen: '#38BDF8'
+      },
+      {
+        id: 'black_lodge',
+        secret: true,
+        bg: 'bg_black_lodge.jpg',
+        book: 'book_blue_book.png',
+        calendar: 'calendar_blue_book.png',
+        reactor: 'reactor_jeffries.png',
+        ru: { name: 'Чёрный Вигвам (Проект «Синяя Книга»)', desc: 'Красная комната, шеврон и чайник Джеффриса' },
+        uk: { name: '★ Чорний Вігвам (Проєкт «Синя Книга»)', desc: 'Червона кімната, шеврон та чайник Джеффріса' },
+        en: { name: 'The Black Lodge (Project Blue Book)', desc: 'Red room, chevron floor & Jeffries apparatus' },
+        colors: ['#0B0405', '#B71C1C', '#13213B', '#E5C378'],
+        glowSpeak: '#FFD166',
+        glowListen: '#5BC0EB'
       }
     ];
 
@@ -6528,8 +9915,9 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
       const currentId = getCurrentLandscape();
       const item = LANDSCAPES.find(l => l.id === currentId) || LANDSCAPES[0];
       const effLang = document.documentElement.getAttribute('lang') || (typeof currentLang !== 'undefined' ? currentLang : 'ru');
+      const isUk = effLang === 'uk';
       const isRu = effLang === 'ru';
-      const loc = isRu ? item.ru : item.en;
+      const loc = item[effLang] || (isUk ? item.uk : (isRu ? item.ru : item.en)) || item.ru;
 
       const thumb = document.getElementById('settingsLandscapeThumb');
       const nameEl = document.getElementById('settingsLandscapeName');
@@ -6542,9 +9930,9 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
       if (thumb) thumb.src = item.bg;
       if (nameEl) nameEl.textContent = loc.name;
       if (descEl) descEl.textContent = loc.desc;
-      if (changeLbl) changeLbl.textContent = isRu ? 'Выбрать ▾' : 'Change ▾';
-      if (headerLbl) headerLbl.textContent = isRu ? 'Пейзаж и атмосфера дневника' : 'Landscape Atmosphere & Style';
-      if (cardEl) cardEl.setAttribute('title', isRu ? 'Нажмите, чтобы выбрать пейзаж и атмосферу' : 'Click to choose scenic atmosphere');
+      if (changeLbl) changeLbl.textContent = isUk ? 'Обрати ▾' : (isRu ? 'Выбрать ▾' : 'Change ▾');
+      if (headerLbl) headerLbl.textContent = isUk ? 'Пейзаж та атмосфера щоденника' : (isRu ? 'Пейзаж и атмосфера дневника' : 'Landscape Atmosphere & Style');
+      if (cardEl) cardEl.setAttribute('title', isUk ? 'Натисніть, щоб обрати пейзаж та атмосферу' : (isRu ? 'Нажмите, чтобы выбрать пейзаж и атмосферу' : 'Click to choose scenic atmosphere'));
       if (swatchesEl) {
         swatchesEl.innerHTML = item.colors.map(c => `<span style="width:10px;height:10px;border-radius:50%;background:${c};display:inline-block;border:1px solid rgba(255,255,255,0.3);"></span>`).join('');
       }
@@ -6558,6 +9946,16 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         setTimeout(() => {
           bookImg.src = item.book;
           bookImg.onload = () => { bookImg.style.opacity = '1'; };
+        }, 120);
+      }
+
+      // Dynamic calendar stand image update with crossfade
+      const calendarImg = document.getElementById('calendarImg');
+      if (calendarImg && item.calendar) {
+        calendarImg.style.opacity = '0';
+        setTimeout(() => {
+          calendarImg.src = item.calendar;
+          calendarImg.onload = () => { calendarImg.style.opacity = '1'; };
         }, 120);
       }
 
@@ -6595,26 +9993,60 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
       applyObjectsAppearance(item);
       updateSettingsLandscapePreview();
       renderAtmosphereGrid();
+      if (window.diaryCalendar && typeof window.diaryCalendar.renderStickers === 'function') {
+        window.diaryCalendar.renderStickers();
+      }
     }
 
     function renderAtmosphereGrid() {
       const grid = document.getElementById('atmosphereGrid');
       if (!grid) return;
       const current = getCurrentLandscape();
+      const isUk = currentLang === 'uk';
       const isRu = currentLang === 'ru';
+      const isJudyUnlocked = localStorage.getItem('diary-secret-judy') === 'true' || current === 'black_lodge';
 
       let html = '';
       LANDSCAPES.forEach(item => {
+        if (item.secret && !isJudyUnlocked) {
+          const lockTitle = isUk
+            ? 'Секретна атмосфера: наберіть judy на головному екрані'
+            : (isRu ? 'Секретная атмосфера: напечатайте judy на главном экране' : 'Secret atmosphere: type judy on the main shelf');
+          const lockKey = isUk ? 'Секретний ключ' : (isRu ? 'Секретный ключ' : 'Secret Key');
+          const lockDesc = isUk
+            ? 'Наберіть пароль judy на головному екрані'
+            : (isRu ? 'Напечатайте пароль judy на главном экране' : 'Type passphrase judy on main shelf');
+
+          html += `
+            <div class="atmosphere-card atmosphere-card-locked" style="opacity: 0.68; border: 1.5px dashed rgba(183, 28, 28, 0.45); cursor: help;" title="${lockTitle}">
+              <div class="atmosphere-thumb" style="background: radial-gradient(circle at center, #2D080E 0%, #080204 100%); display: flex; align-items: center; justify-content: center; color: #E5C378; font-size: 22px;">
+                🔒
+              </div>
+              <div class="atmosphere-info">
+                <div class="atmosphere-title-row">
+                  <span class="atmosphere-name" style="color: #B71C1C; font-weight: 600;">??? (${lockKey})</span>
+                </div>
+                <span class="atmosphere-desc" style="font-style: italic; color: var(--text-muted);">${lockDesc}</span>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
         const active = item.id === current;
-        const loc = isRu ? item.ru : item.en;
+        const loc = item[currentLang] || (isUk ? item.uk : (isRu ? item.ru : item.en)) || item.ru;
+        const activeBadge = isUk ? 'Обрано' : (isRu ? 'Выбрано' : 'Active');
         const swatches = item.colors.map(c => `<span class="swatch-dot" style="background-color: ${c}"></span>`).join('');
+        const secretBadge = item.secret ? `<span style="background:#B71C1C;color:#FFE;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;letter-spacing:0.06em;margin-left:6px;box-shadow:0 0 8px rgba(183,28,28,0.5);">★ SECRET</span>` : '';
+        const secretCardStyle = item.secret ? 'border-color: rgba(183, 28, 28, 0.55); box-shadow: 0 4px 18px rgba(183, 28, 28, 0.15);' : '';
+
         html += `
-          <div class="atmosphere-card ${active ? 'active' : ''}" data-landscape-id="${item.id}">
+          <div class="atmosphere-card ${active ? 'active' : ''}" data-landscape-id="${item.id}" style="${secretCardStyle}">
             <img src="${item.bg}" alt="${esc(loc.name)}" class="atmosphere-thumb" loading="lazy">
             <div class="atmosphere-info">
               <div class="atmosphere-title-row">
-                <span class="atmosphere-name">${esc(loc.name)}</span>
-                <span class="atmosphere-active-badge">✓ ${isRu ? 'Выбрано' : 'Active'}</span>
+                <span class="atmosphere-name">${esc(loc.name)}${secretBadge}</span>
+                <span class="atmosphere-active-badge">✓ ${activeBadge}</span>
               </div>
               <span class="atmosphere-desc">${esc(loc.desc)}</span>
               <div class="atmosphere-swatches">${swatches}</div>
@@ -6634,8 +10066,8 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
       // Update modal titles for current lang
       const titleEl = document.getElementById('atmosphereModalTitle');
       const subEl = document.getElementById('atmosphereModalSubtitle');
-      if (titleEl) titleEl.textContent = isRu ? 'Атмосфера дневника' : 'Diary Atmosphere';
-      if (subEl) subEl.textContent = isRu ? 'Выберите пейзаж и цветовую палитру' : 'Choose your scenic landscape & atmosphere';
+      if (titleEl) titleEl.textContent = isUk ? 'Атмосфера щоденника' : (isRu ? 'Атмосфера дневника' : 'Diary Atmosphere');
+      if (subEl) subEl.textContent = isUk ? 'Оберіть пейзаж та кольорову палітру' : (isRu ? 'Выберите пейзаж и цветовую палитру' : 'Choose your scenic landscape & atmosphere');
     }
 
     function openAtmospherePicker() {
@@ -6703,6 +10135,92 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         openAtmospherePicker();
       });
     }
+
+    /* ── Secret Easter Egg: "judy" Unlock ─────────────────────────────── */
+    let judyKeyBuffer = '';
+    const JUDY_CODE = 'judy';
+
+    function playJudyAudioFx() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+
+        const now = ctx.currentTime;
+        // Deep Lynchian low-frequency drone & reverse harmonic rumble
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(55, now); // A1
+        osc1.frequency.exponentialRampToValueAtTime(45, now + 2.4);
+
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(110, now);
+        osc2.frequency.exponentialRampToValueAtTime(80, now + 2.4);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(160, now);
+        filter.frequency.linearRampToValueAtTime(340, now + 0.9);
+        filter.frequency.exponentialRampToValueAtTime(90, now + 2.6);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.28, now + 0.3);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 3.0);
+        osc2.stop(now + 3.0);
+      } catch (err) {
+        console.warn('Judy audio fx error:', err);
+      }
+    }
+
+    function triggerJudyUnlock() {
+      localStorage.setItem('diary-secret-judy', 'true');
+      playJudyAudioFx();
+
+      // Atmospheric screen flash & banner
+      document.body.classList.add('judy-unlock-anim');
+      const banner = document.getElementById('judyUnlockBanner');
+      if (banner) {
+        banner.classList.add('active');
+        setTimeout(() => {
+          banner.classList.remove('active');
+          document.body.classList.remove('judy-unlock-anim');
+        }, 3200);
+      } else {
+        setTimeout(() => {
+          document.body.classList.remove('judy-unlock-anim');
+        }, 1800);
+      }
+
+      setLandscape('black_lodge');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+        return;
+      }
+      if (!e.key || typeof e.key !== 'string') return;
+      judyKeyBuffer += e.key.toLowerCase();
+      if (judyKeyBuffer.length > 8) judyKeyBuffer = judyKeyBuffer.slice(-8);
+      if (judyKeyBuffer.endsWith(JUDY_CODE) || judyKeyBuffer.endsWith('огвн')) {
+        judyKeyBuffer = '';
+        triggerJudyUnlock();
+      }
+    });
+
+    window.triggerJudyUnlock = triggerJudyUnlock;
 
     // Initial setup of objects and preview on page load
     (function initLandscapeVisuals() {
@@ -7698,7 +11216,13 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
     try {
       const st = await fetch('/api/settings').then(r => r.json());
       const local = localStorage.getItem('diary-gemini-api-key');
-      if (st.hasKey || local) return;
+      if (st.hasKey || local) {
+        if (st.apiKey && !local) {
+          localStorage.setItem('diary-gemini-api-key', st.apiKey);
+        }
+        screen.hidden = true;
+        return;
+      }
     } catch (e) {}
 
     screen.hidden = false;

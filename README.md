@@ -25,10 +25,12 @@ Two ways in, one memory behind both:
 
 **The notebook** — pages you leaf through, conversations grouped by day, each with a
 title and what the diary took away from it. Type, or tap the microphone and speak.
-Works on a free API tier.
 
-**Live voice** — you talk, it answers out loud, you can interrupt it. Needs a paid
-Gemini plan; the notebook does not.
+**Live voice** — you talk, it answers out loud, you can interrupt it.
+
+Both run on a free Gemini key. Live voice has its own quota, separate from the text
+one and generous; the notebook's spoken replies are the part that runs out first, at
+ten a day. See [Keys](#keys) for the measured numbers.
 
 ## Memory
 
@@ -47,11 +49,29 @@ drowns the facts, and facts without the dialogue lose how something was said.
 
 | key | what for | tier |
 |---|---|---|
-| Gemini | conversation, memory, the diary's voice | free tier works; live voice and privacy need a paid plan |
+| Gemini | conversation, memory, the diary's voice | free tier works, limits below |
 | Groq | turns speech into text (Whisper) | free, no card |
 
 On Gemini's free tier Google uses your conversations to improve its models. Adding a
 card in Google Cloud stops that. It is your diary — your call.
+
+### What the free tier actually gives you
+
+Measured on a live free key, 13–14 September 2026 — not read off a pricing page:
+
+| | free tier |
+|---|---|
+| live voice (Arc Reactor) | its own quota; no ceiling found in testing |
+| memory search | no limit hit |
+| text model | 5 requests a minute, 20 a day — **per model** |
+| spoken replies in the notebook | 10 a day |
+
+The daily counters are per project and reset at midnight Pacific. The diary spreads its
+background work over three different models on purpose, so conversation, fact extraction
+and titles each get their own allowance instead of sharing one.
+
+Enabling billing removes the free tier for that project entirely. Paid, an ordinary day
+of use — half an hour of conversation, fifty-odd turns — costs about **$0.20**.
 
 ## Build
 
@@ -80,8 +100,24 @@ pip install -r requirements.txt
 python -m diary.server
 ```
 
-Data lives in `~/.diary`: memory snapshot, conversation journal, attachments, keys.
-Back it up from the settings panel — to an external drive or a cloud folder.
+Data lives in `~/.diary`: memory snapshot, conversation journal, calendar, attachments,
+keys. Back it up from the settings panel — to an external drive or a cloud folder.
+
+Environment variables, all optional:
+
+| variable | default | what it does |
+|---|---|---|
+| `DIARY_HOME` | `~/.diary` | where the diary keeps everything |
+| `DIARY_PORT` | `8791` | page; the voice bridge takes the next port up |
+| `DIARY_CHAT_MODEL` | `gemini-3.8-flash` | the conversation itself |
+| `DIARY_EXTRACT_MODEL` | `gemini-2.5-flash` | turning conversations into facts |
+| `DIARY_TITLE_MODEL` | `gemini-3.5-flash` | titles and the link questions |
+| `DIARY_LIVE_MODEL` | `gemini-2.5-flash-native-audio-latest` | live voice |
+| `DIARY_LIVE_VOICE` | `Kore` | which prebuilt voice speaks |
+| `DIARY_BACKUP_DIR` | — | where hourly copies go |
+
+The three text models are deliberately different: free-tier quota is counted per model,
+so splitting the work triples what a free key can do in a day.
 
 ## License
 

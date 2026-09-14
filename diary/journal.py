@@ -63,7 +63,8 @@ class Journal:
                              "date": datetime.now().strftime("%Y-%m-%d"),
                              "started": datetime.now().strftime("%H:%M"),
                              "ts": now, "ts_last": now,
-                             "title": "", "turns": [], "takeaways": []}
+                             "title": "", "turns": [], "takeaways": [],
+                             "extracted": 0}   # сколько ходов уже разобрано на факты
                 rows = self._rows() + [self._cur]
             else:
                 rows = [r for r in self._rows() if r["id"] != self._cur["id"]] + [self._cur]
@@ -81,6 +82,69 @@ class Journal:
         with self._lock:
             self._cur["takeaways"] = (self._cur.get("takeaways") or []) + list(facts)
             rows = [r for r in self._rows() if r["id"] != self._cur["id"]] + [self._cur]
+            self._flush(rows)
+
+    def backfill_extracted(self) -> int:
+        """Пометить прежние разговоры как уже разобранные.
+
+        🔴 До перехода на разбор раз в сессию каждый ход разбирался сразу — всё
+        записанное раньше УЖЕ лежит в памяти. Без этой отметки первый же проход
+        принял бы всю историю за неразобранную и утащил её в модель: у человека
+        с месяцами записей это десятки запросов разом и выбранная за минуту
+        суточная квота. Ставится один раз, при первом запуске новой версии.
+        """
+        with self._lock:
+            rows = self._rows()
+            n = 0
+            for r in rows:
+                if "extracted" not in r:
+                    r["extracted"] = len(r.get("turns") or [])
+                    n += 1
+            if self._cur is not None and "extracted" not in self._cur:
+                # _cur живёт отдельным объектом и при следующей записи перекроет
+                # строку на диске — без этого отметка бы потерялась
+                self._cur["extracted"] = len(self._cur.get("turns") or [])
+            if n:
+                self._flush(rows)
+            return n
+
+    def pending(self, idle_sec: int = 180, max_pending: int = 12) -> list[dict]:
+        """Разговоры, которые пора разобрать на факты.
+
+        Ждём либо тишины (человек ушёл — разговор закончен), либо накопления
+        дюжины неразобранных ходов: иначе долгая беседа весь день оставалась бы
+        неразобранной, а к вечеру её пришлось бы глотать одним куском.
+        """
+        now = time.time()
+        out = []
+        for r in self._rows():
+            turns = r.get("turns") or []
+            done = int(r.get("extracted") or 0)
+            if len(turns) <= done:
+                continue
+            idle = now - float(r.get("ts_last") or 0)
+            if idle >= idle_sec or (len(turns) - done) >= max_pending:
+                out.append(r)
+        return out
+
+    def settle_session(self, session_id: str, facts: list[str], upto: int) -> None:
+        """Итог разбора: выводы в сессию, отметка «разобрано до хода N».
+        Одной записью на диск — две отдельные ломали бы файл на полпути."""
+        with self._lock:
+            rows = self._rows()
+            for r in rows:
+                if r.get("id") != session_id:
+                    continue
+                if facts:
+                    r["takeaways"] = (r.get("takeaways") or []) + list(facts)
+                r["extracted"] = upto
+                break
+            else:
+                return
+            if self._cur and self._cur.get("id") == session_id:
+                if facts:
+                    self._cur["takeaways"] = (self._cur.get("takeaways") or []) + list(facts)
+                self._cur["extracted"] = upto
             self._flush(rows)
 
     def set_title(self, title: str) -> None:

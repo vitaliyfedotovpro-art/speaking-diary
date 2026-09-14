@@ -13,7 +13,6 @@ import asyncio
 import base64
 import json
 import os
-import threading
 
 import websockets
 from websockets.asyncio.server import serve as ws_serve
@@ -39,8 +38,10 @@ SPOKEN = """
 
 ИНСТРУМЕНТЫ. recall_diary — когда нужна подробность из прошлого, которой нет в
 выдержке ниже: спрашивай ДО ответа, а не после. remember_fact — когда человек сказал
-о своей жизни то, что будет важно через месяц: события, решения, люди, планы. Свои
-мнения и советы не сохраняй никогда."""
+о своей жизни то, что будет важно через месяц: события, решения, люди, планы.
+manage_calendar — расписание, дела, встречи и экспресс-стикеры. Когда человек просит
+«запиши в календарь...», «напомни...», «какие планы на сегодня» или «прикрепи стикер» —
+вызывай manage_calendar или используй данные расписания из контекста. Свои мнения и советы не сохраняй никогда."""
 
 SYSTEM = _chat.SYSTEM + SPOKEN
 
@@ -55,8 +56,19 @@ TOOLS = [{"functionDeclarations": [
      "description": "Save one fact about the person's life to the diary.",
      "parameters": {"type": "object",
                     "properties": {"fact": {"type": "string",
-                                            "description": "self-contained fact, third person"}},
+                                             "description": "self-contained fact, third person"}},
                     "required": ["fact"]}},
+    {"name": "manage_calendar",
+     "description": "Manage user's calendar schedule, events, or express task stickers. Use to add, view, or check affairs and upcoming plans.",
+     "parameters": {"type": "object",
+                    "properties": {"action": {"type": "string",
+                                             "enum": ["add_event", "add_sticker", "list_events", "get_schedule"],
+                                             "description": "action to perform"},
+                                   "title": {"type": "string", "description": "Title of event or text of sticker"},
+                                   "date": {"type": "string", "description": "Date in YYYY-MM-DD or 'today', 'tomorrow'"},
+                                   "time": {"type": "string", "description": "Time in HH:MM like '15:00' or 'all-day'"},
+                                   "notes": {"type": "string", "description": "Optional notes or details"}},
+                    "required": ["action"]}},
 ]}]
 
 
@@ -99,7 +111,9 @@ def _recent(jr, n: int = 10) -> str:
 
 
 def _context(mem: Memory, jr=None) -> str:
-    return _digest(mem) + _recent(jr)
+    from . import calendar_store
+    cal_ctx = f"\n\nРАСПИСАНИЕ И ДЕЛА:\n{calendar_store.get_today_summary(None)}\n"
+    return _digest(mem) + _recent(jr) + cal_ctx
 
 
 def _setup_msg(voice: str | None = None, model: str | None = None,
@@ -117,7 +131,7 @@ def _setup_msg(voice: str | None = None, model: str | None = None,
     }}
 
 
-async def _handle_tool(mem: Memory, call: dict) -> dict:
+async def _handle_tool(mem: Memory, call: dict, client=None) -> dict:
     name, args = call.get("name", ""), call.get("args") or {}
     if name == "recall_diary":
         rows = await asyncio.to_thread(mem.recall, args.get("query", ""), 6)
@@ -128,6 +142,34 @@ async def _handle_tool(mem: Memory, call: dict) -> dict:
         if fact:
             await asyncio.to_thread(mem.remember, fact, SRC_USER)
         return {"id": call.get("id"), "name": name, "response": {"result": "saved"}}
+    if name == "manage_calendar":
+        from . import calendar_store
+        action = args.get("action", "")
+        title = args.get("title", "")
+        date_str = args.get("date", "today")
+        time_str = args.get("time", "all-day")
+        notes = args.get("notes", "")
+
+        if action == "add_event":
+            evt = calendar_store.add_event(None, title, date_str, time_str, notes)
+            if client:
+                try:
+                    await client.send(json.dumps({"type": "calendar_update", "action": "add_event", "event": evt}))
+                except Exception:
+                    pass
+            return {"id": call.get("id"), "name": name, "response": {"result": f"Записано в календарь: {evt['title']} на {evt['date']} в {evt['time']}"}}
+        elif action == "add_sticker":
+            stk = calendar_store.add_sticker(None, title or notes or "Заметка")
+            if client:
+                try:
+                    await client.send(json.dumps({"type": "calendar_update", "action": "add_sticker", "sticker": stk}))
+                except Exception:
+                    pass
+            return {"id": call.get("id"), "name": name, "response": {"result": f"Стикер прикреплен на экран: {stk['text']}"}}
+        else:
+            summary = calendar_store.get_today_summary(None)
+            return {"id": call.get("id"), "name": name, "response": {"result": summary}}
+
     return {"id": call.get("id"), "name": name, "response": {"result": "unknown tool"}}
 
 
@@ -179,41 +221,20 @@ async def bridge(client, mem: Memory, jr=None) -> None:
 
         said: dict[str, list[str]] = {"you": [], "diary": []}
 
-        def _settle(you: str, diary: str) -> None:
-            """Осадок хода: факты в память, выводы и заголовок — в журнал.
-
-            Живой режим раньше только складывал реплики: разбор на факты висел в
-            текстовом пути (server._record), сюда не звали, и модель сохраняла
-            что-то лишь когда сама вспоминала про remember_fact. За 117 голосовых
-            ходов в памяти осело 12 фактов. Теперь тихий проход тот же, что у текста.
-            """
-            try:
-                facts = _chat.remember(mem, you, diary)
-                if facts:
-                    jr.add_takeaways(facts)
-            except Exception as e:
-                print(f"[voice] выводы не записались: {type(e).__name__}: {e}")
-            try:
-                if jr.needs_title():
-                    jr.set_title(_chat.title_for(jr.current_dialog()))
-            except Exception:
-                pass
-
         def flush_turn() -> None:
-            """Реплики копятся по кусочкам — в журнал пишем целыми, в конце хода."""
+            """Реплики копятся по кусочкам — в журнал пишем целыми, в конце хода.
+
+            Разбор на факты здесь НЕ делаем. Он идёт раз в сессию общим проходом
+            (server._extract_sweep) по тому же журналу: на каждом ходу он съедал
+            по запросу к модели, а бесплатный тариф даёт 20 в сутки на модель.
+            """
             if jr is None:
                 return
-            whole = {}
             for who in ("you", "diary"):
-                whole[who] = "".join(said[who]).strip()
-                if whole[who]:
-                    jr.add_turn(who, whole[who], voice=True)
+                text = "".join(said[who]).strip()
+                if text:
+                    jr.add_turn(who, text, voice=True)
                 said[who] = []
-            # Разбор идёт отдельным потоком: он ходит в Gemini, а этот вызов держит
-            # приём звука — ждать его значит глушить разговор на несколько секунд.
-            if whole["you"] and whole["diary"]:
-                threading.Thread(target=_settle, daemon=True,
-                                 args=(whole["you"], whole["diary"])).start()
 
         async def from_gemini():
             async for raw in up:
@@ -223,7 +244,7 @@ async def bridge(client, mem: Memory, jr=None) -> None:
                     continue
                 if "toolCall" in d:
                     calls = d["toolCall"].get("functionCalls") or []
-                    resp = [await _handle_tool(mem, c) for c in calls]
+                    resp = [await _handle_tool(mem, c, client) for c in calls]
                     await up.send(json.dumps({"toolResponse": {"functionResponses": resp}}))
                     await client.send(json.dumps({"type": "tool",
                                                   "names": [c.get("name") for c in calls]}))

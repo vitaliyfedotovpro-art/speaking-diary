@@ -35,18 +35,13 @@ _RT_CACHE: dict = {"ok": None}
 
 
 def _record(handler, user_text: str, answer: str, voice: bool = False) -> None:
-    """Разговор — в журнал, факты — в память, заголовок — когда есть о чём.
-    Всё в фоне: человек не должен ждать бухгалтерию ради ответа."""
-    jr, mem = handler.jr, handler.mem
+    """Разговор — в журнал. Факты отсюда БОЛЬШЕ НЕ разбираются: этим занят
+    _extract_sweep, раз в сессию. Здесь разбор стоил по запросу на каждый ход,
+    и на бесплатном тарифе (20 в сутки на модель) память умирала к обеду."""
+    jr = handler.jr
     handler.lk.tick()                       # ход прошёл — опросник ближе к вопросу
     jr.add_turn("you", user_text, voice=voice)
     jr.add_turn("diary", answer, voice=voice)
-    try:
-        facts = _chat.remember(mem, user_text, answer)
-        if facts:
-            jr.add_takeaways(facts)
-    except Exception as e:
-        print(f"[journal] выводы не записались: {type(e).__name__}: {e}")
     if jr.needs_title():
         try:
             jr.set_title(_chat.title_for(jr.current_dialog()))
@@ -193,25 +188,36 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.startswith("/api/days"):
             return self._json({"days": self.jr.days()})
         if self.path.startswith("/api/capabilities"):
-            # Live API нет на бесплатном тарифе. Проверяем не по документации,
-            # а попыткой соединения — тариф виден только так.
+            # Проверяем не по документации, а попыткой соединения: пустит ключ
+            # или нет, видно только так. 🔴 Прежний текст утверждал, что Live
+            # требует платного тарифа — замер 14.09.2026 на живом бесплатном
+            # ключе это опроверг: речь дошла, расшифровалась, модель ответила
+            # голосом. Обещать тариф нельзя, можно только спросить у ключа.
             return self._json({"report_channel": _callhome.configured(),
                                "stt": _stt.available(),
                                "realtime": _realtime_available(),
                                "why": "" if _realtime_available()
-                                      else "Realtime voice needs a paid Gemini plan. "
-                                           "Walkie-talkie mode works on the free tier."})
+                                      else "This key was refused for realtime voice — "
+                                           "it may be out of quota. The notebook still works."})
         if self.path.startswith("/api/settings"):
-            # 🔴 Ключ в страницу отдаётся ТОЛЬКО в режиме разработки (DIARY_DEV=1),
-            # чтобы поле настроек показывало реальное значение на своей машине.
-            # В обычной сборке ключи вводит пользователь и живут они у него.
-            dev = os.environ.get("DIARY_DEV", "") == "1"
-            return self._json({"apiKey": os.environ.get("GEMINI_API_KEY", "") if dev else "",
-                               "hasKey": bool(os.environ.get("GEMINI_API_KEY")),
+            for var, fname in (("GEMINI_API_KEY", "key"), ("GROQ_API_KEY", "groq_key")):
+                if not os.environ.get(var):
+                    f = HOME / fname
+                    if f.exists():
+                        try:
+                            os.environ[var] = f.read_text(encoding="utf-8").strip()
+                        except Exception:
+                            pass
+            k = os.environ.get("GEMINI_API_KEY", "")
+            return self._json({"apiKey": k,
+                               "hasKey": bool(k),
                                "hasStt": bool(os.environ.get("GROQ_API_KEY")),
                                "voice": os.environ.get("DIARY_LIVE_VOICE", "Kore"),
                                "liveModel": os.environ.get("DIARY_LIVE_MODEL",
                                                            "gemini-2.5-flash-native-audio-latest")})
+        if self.path.startswith("/api/calendar"):
+            from . import calendar_store
+            return self._json(calendar_store.load_data(HOME))
         if self.path.startswith("/api/status"):
             return self._json({"entries": self.mem.count(),
                                "db": str(self.mem.path),
@@ -231,6 +237,47 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(n) or b"{}")
         except Exception:
             return self._json({"error": "bad request"}, 400)
+
+        if self.path == "/api/calendar":
+            from . import calendar_store
+            action = body.get("action", "")
+            if action == "add_event":
+                evt = calendar_store.add_event(
+                    HOME,
+                    body.get("title", ""),
+                    body.get("date", "today"),
+                    body.get("time", "all-day"),
+                    body.get("notes", ""),
+                    body.get("tag", "general")
+                )
+                return self._json({"ok": True, "event": evt})
+            elif action == "add_sticker":
+                stk = calendar_store.add_sticker(
+                    HOME,
+                    body.get("text", ""),
+                    body.get("color", "kraft")
+                )
+                return self._json({"ok": True, "sticker": stk})
+            elif action == "complete_sticker":
+                res = calendar_store.complete_sticker(
+                    HOME,
+                    body.get("id", ""),
+                    body.get("completed", True)
+                )
+                return self._json({"ok": res})
+            elif action == "delete_event":
+                res = calendar_store.delete_event(HOME, body.get("id", ""))
+                return self._json({"ok": res})
+            elif action == "delete_sticker":
+                res = calendar_store.delete_sticker(HOME, body.get("id", ""))
+                return self._json({"ok": res})
+            elif action == "update_sticker":
+                res = calendar_store.update_sticker(HOME, body.get("id", ""), body.get("text"), body.get("color"))
+                return self._json({"ok": res})
+            elif action == "save_all":
+                calendar_store.save_data(body.get("data") or {}, HOME)
+                return self._json({"ok": True})
+            return self._json({"error": "unknown action"}, 400)
 
         if self.path == "/api/chat":
             text = (body.get("text") or "").strip()
@@ -295,6 +342,15 @@ class Handler(BaseHTTPRequestHandler):
                                "transcript": said,          # то, что услышал Whisper
                                "audio": _b64.b64encode(wav).decode() if wav else "",
                                "recalled": len(r["used"])})
+
+        if self.path == "/api/tts":
+            text = (body.get("text") or "").strip()
+            voice = body.get("voice") or "Kore"
+            if not text:
+                return self._json({"error": "no text"}, 400)
+            wav = _tts.speak(text, voice=voice)
+            import base64 as _b64
+            return self._json({"audio": _b64.b64encode(wav).decode() if wav else ""})
 
         if self.path == "/api/backup/run":
             dest = (body.get("dest") or os.environ.get("DIARY_BACKUP_DIR") or "").strip()
@@ -460,6 +516,33 @@ def _title_sweep(handler) -> None:
     threading.Thread(target=loop, daemon=True).start()
 
 
+def _extract_sweep(handler) -> None:
+    """Разбор разговоров на факты — РАЗ В СЕССИЮ, общий для голоса и текста.
+
+    Оба режима пишут в один журнал, поэтому и разбирать их должен один проход:
+    прежде текст разбирался в _record, голос — в voice._settle, и каждый тратил
+    по запросу на ход. Теперь разговор дозревает (три минуты тишины или дюжина
+    неразобранных ходов) и уходит в модель одним куском.
+    """
+    def loop():
+        while True:
+            time.sleep(60)
+            try:
+                # не больше трёх за проход: если после сбоя накопилось много
+                # неразобранных разговоров, они разойдутся по минутам, а не
+                # выберут суточную квоту одним залпом
+                for s in handler.jr.pending()[:3]:
+                    turns = s.get("turns") or []
+                    done = int(s.get("extracted") or 0)
+                    fresh = turns[done:]
+                    facts = _chat.remember_session(handler.mem, fresh)
+                    handler.jr.settle_session(s["id"], facts, len(turns))
+                    print(f"[журнал] разобрано ходов: {len(fresh)} → фактов: {len(facts)}")
+            except Exception as e:
+                print(f"[журнал] разбор не прошёл: {type(e).__name__}: {e}")
+    threading.Thread(target=loop, daemon=True).start()
+
+
 def _start_autobackup(handler) -> None:
     """Копия раз в час, если папка выбрана. Дневник копится молча, и человек
     вспоминает о копии ровно тогда, когда она уже нужна."""
@@ -495,8 +578,19 @@ def _start_voice(mem, port: int, jr=None) -> None:
 
 def serve(port: int = 8791, open_browser: bool = True, voice_port: int = 8792) -> None:
     HOME.mkdir(parents=True, exist_ok=True)
+    for var, fname in (("GEMINI_API_KEY", "key"), ("GROQ_API_KEY", "groq_key")):
+        if not os.environ.get(var):
+            f = HOME / fname
+            if f.exists():
+                try:
+                    os.environ[var] = f.read_text(encoding="utf-8").strip()
+                except Exception:
+                    pass
     Handler.mem = Memory(HOME / "diary.hsam.json")
     Handler.jr = Journal(HOME / "journal.jsonl")
+    _old = Handler.jr.backfill_extracted()
+    if _old:
+        print(f"  журнал: {_old} прежних разговоров отмечены как разобранные")
     Handler.lk = Links(HOME / "links.jsonl")
     Handler.sup = _support.Support(HOME, Handler.mem, Handler.jr)
     # куда писать копии — помним между запусками
@@ -504,6 +598,7 @@ def serve(port: int = 8791, open_browser: bool = True, voice_port: int = 8792) -
         os.environ["DIARY_BACKUP_DIR"] = (HOME / "backup_dir").read_text(encoding="utf-8").strip()
     _start_autobackup(Handler)
     _title_sweep(Handler)
+    _extract_sweep(Handler)
     Handler.voice_port = voice_port
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{port}/"
