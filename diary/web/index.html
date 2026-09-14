@@ -5483,7 +5483,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="storage-path-badge">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-            <span>Local SQLite storage: <code>~/Developer/diary/diary.db</code> (6,412 nodes indexed)</span>
+            <!-- Путь и число записей приходят от сервера. Прежде здесь стояла
+                 выдуманная строка про базу SQLite: такой базы нет вовсе, память
+                 держит HSAM и файл лежит в другом месте, число узлов было взято
+                 с потолка, а в пути светился домашний каталог того, кто это
+                 писал. Чужой каталог в чужой сборке показывать нечего. -->
+            <span>Local storage: <code id="storagePathValue">~/.diary</code><span id="storageNodeCount"></span></span>
           </div>
         </section>
 
@@ -6381,6 +6386,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (r.ok) {
           const st = await r.json();
           voiceWsUrl = st.voice_ws || 'ws://127.0.0.1:8792';
+          // Где на самом деле лежит память — берём у сервера, а не пишем в разметке:
+          // у каждого свой каталог, и DIARY_HOME его меняет.
+          const pathEl = document.getElementById('storagePathValue');
+          if (pathEl && st.db) pathEl.textContent = st.db;
+          const countEl = document.getElementById('storageNodeCount');
+          if (countEl && typeof st.entries === 'number') {
+            countEl.textContent = ` (${st.entries} ${st.entries === 1 ? 'fact' : 'facts'})`;
+          }
           const entries = st.entries || (rawDaysData.length ? rawDaysData.reduce((acc, d) => acc + (d.sessions ? d.sessions.length : 0), 0) : 1);
           selectionStats.textContent = t.entriesInDiary(entries, todayFormatted);
           return;
@@ -10294,7 +10307,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
           language: savedLang,
           effectiveLanguage: effLang,
           theme: localStorage.getItem('diary-theme') || htmlEl.getAttribute('data-theme') || 'dark',
-          storagePath: '~/Developer/diary/diary.db'
+          storagePath: (document.getElementById('storagePathValue') || {}).textContent || '~/.diary'
         };
       };
 
@@ -10679,7 +10692,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
             application: "Personal Diary",
             owner: ownerName(),
             exportedAt: new Date().toISOString(),
-            sqliteDatabase: "~/Developer/diary/diary.db",
+            storage: (document.getElementById('storagePathValue') || {}).textContent || '~/.diary',
             settings: window.getSettings(),
             totalEntries: entries.length,
             entries: entries
