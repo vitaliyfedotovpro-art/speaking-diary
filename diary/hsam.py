@@ -1,17 +1,18 @@
-"""Обёртка над Astrum HSAM — движком памяти, ради которого всё и затевалось.
+"""A wrapper around Astrum HSAM — the memory engine this was all built for.
 
-Это НЕ векторная база с прикрученной моделью. HSAM делает две вещи, которых
-векторный поиск не делает в принципе, и обе измерены на живом железе:
+This is NOT a vector store with a model bolted on. HSAM does two things a vector
+search does not do at all, and both were measured on real hardware:
 
-· КАРАНТИН САМООПИСАНИЙ. Факт, помеченный как «модель сказала о себе», исключается
-  из выдачи целиком, а не понижается в ранге. Иначе через месяц дневник цитирует
-  собственные догадки как биографию человека. Замер: загрязнение 66.6% → 0%.
+· QUARANTINE OF SELF-DESCRIPTIONS. A fact marked "the model said this about itself"
+  is excluded from recall entirely, not merely down-ranked. Otherwise, a month later
+  the diary quotes its own guesses back as a person's biography. Measured:
+  contamination 66.6% → 0%.
 
-· КАНОН ПЕРЕЖИВАЕТ ДАВЛЕНИЕ. Правила и ограничения — ровно то, что LRU выбрасывает
-  первым, потому что их редко перечитывают. Канон-узлы не вытесняются никогда.
-  Замер: 100% сохранности против 0% у политик по свежести и по частоте.
+· CANON SURVIVES PRESSURE. Rules and constraints are exactly what an LRU policy
+  throws out first, because they are rarely re-read. Canon nodes are never evicted.
+  Measured: 100% retention against 0% for recency- and frequency-based policies.
 
-Векторы приходят снаружи (их считает Gemini) — HSAM их только хранит и ищет.
+Vectors come from outside (Gemini computes them) — HSAM only stores and searches them.
 """
 from __future__ import annotations
 
@@ -20,17 +21,18 @@ import json
 import platform
 from pathlib import Path
 
-# Провенанс: ось, по которой движок отделяет сказанное человеком от сочинённого моделью.
-SRC_USER = 0        # сказал человек — высшее доверие
-SRC_LLM = 1         # сочинила модель (о мире)
-SRC_SELF = 2        # 🔒 модель о самой себе — В КАРАНТИНЕ, в выдачу не попадает
-SRC_DOC = 3         # внешний документ
-SRC_VERIFIED = 4    # проверено инструментом
-SRC_LEGACY = 5      # происхождение неизвестно
+# Provenance: the axis along which the engine separates what a person said from what
+# a model invented.
+SRC_USER = 0        # a person said it — highest trust
+SRC_LLM = 1         # a model produced it (about the world)
+SRC_SELF = 2        # 🔒 a model about itself — QUARANTINED, never reaches recall
+SRC_DOC = 3         # an external document
+SRC_VERIFIED = 4    # verified by a tool
+SRC_LEGACY = 5      # origin unknown
 
 CANON_NONE = 0
-CANON_PROJECT = 1       # не вытесняется под давлением
-CANON_FOUNDATIONAL = 2  # то же, верхний уровень
+CANON_PROJECT = 1       # not evicted under pressure
+CANON_FOUNDATIONAL = 2  # the same, top level
 
 
 def _libname() -> str:
@@ -73,7 +75,7 @@ class Hsam:
         L.astrum_memory_version.restype = ctypes.c_void_p
 
     def _take(self, ptr) -> str:
-        """Забрать строку из движка и сразу вернуть ему память."""
+        """Take a string from the engine and hand the memory straight back."""
         if not ptr:
             return ""
         try:
@@ -81,7 +83,7 @@ class Hsam:
         finally:
             self._lib.astrum_memory_free_string(ptr)
 
-    # ── запись ────────────────────────────────────────────────────────────
+    # ── writing ───────────────────────────────────────────────────────────
     def add(self, content: str, vec=None, source: int = SRC_USER,
             tags: list[str] | None = None, cell: int = 2, canon: int = CANON_NONE) -> str:
         arr = None
@@ -95,12 +97,12 @@ class Hsam:
             arr, ctypes.c_size_t(n)))
 
     def feedback(self, node_id: str, helpful: bool) -> int:
-        """ТОЛЬКО по решению человека. Вердикт, взятый из собственного цикла
-        («модель это использовала, значит хорошо»), возвращает вывод модели
-        обратно как доказательство — ровно то, против чего движок и сделан."""
+        """ONLY on a human decision. A verdict taken from the model's own loop
+        ("the model used it, so it was good") feeds the model's output back in as
+        evidence — the very thing this engine exists to prevent."""
         return self._lib.astrum_memory_record_feedback(self._h, node_id.encode(), 1 if helpful else 0)
 
-    # ── чтение ────────────────────────────────────────────────────────────
+    # ── reading ───────────────────────────────────────────────────────────
     def search(self, vec, top_k: int = 8, cell: int = 2) -> list[dict]:
         n = len(vec)
         arr = (ctypes.c_float * n)(*[float(x) for x in vec])
@@ -118,7 +120,7 @@ class Hsam:
         return int(self._lib.astrum_memory_node_count(self._h))
 
     def enforce_capacity(self, max_nodes: int) -> int:
-        """Сброс под давлением. Канон переживёт, даже если узлов останется больше."""
+        """Shedding under pressure. Canon survives even if more nodes remain than asked."""
         return int(self._lib.astrum_memory_enforce_capacity(self._h, max_nodes))
 
     def version(self) -> str:

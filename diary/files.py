@@ -1,17 +1,17 @@
-"""Файлы и ссылки в дневнике.
+"""Files and links in the diary.
 
-Gemini принимает картинки, PDF, аудио и видео напрямую — значит скриншот, чек,
-голосовое или страница по ссылке могут стать частью разговора без отдельных
-парсеров и распознавалок.
+Gemini accepts images, PDFs, audio and video directly — which means a screenshot, a
+receipt, a voice message or a page behind a link can become part of the conversation
+without separate parsers and recognisers.
 
-Два правила, из-за которых это не превращается в свалку:
+Two rules keep this from turning into a dump:
 
-· ФАЙЛ НЕ ХРАНИТСЯ ЦЕЛИКОМ. В память идёт то, что он ЗНАЧИТ («чек из аптеки на
-  340 долларов, 3 сентября»), а не мегабайты пикселей. Оригинал кладётся рядом,
-  на него можно посмотреть глазами.
+· THE FILE IS NOT STORED WHOLE. What goes into memory is what it MEANS ("a pharmacy
+  receipt for 340 dollars, 3 September"), not megabytes of pixels. The original is
+  kept alongside, and can be looked at with your own eyes.
 
-· ИСТОЧНИК ПОМЕЧАЕТСЯ. Прочитанное из файла — не то же самое, что сказанное
-  человеком: у документа своя достоверность, и путать их нельзя.
+· THE SOURCE IS MARKED. Something read from a file is not the same as something said
+  by a person: a document has its own reliability, and the two must not be confused.
 """
 from __future__ import annotations
 
@@ -25,15 +25,15 @@ from pathlib import Path
 
 import httpx
 
-# Что Gemini берёт как есть. Остальное пробуем прочитать как текст.
+# What Gemini takes as is. Everything else we try to read as text.
 INLINE_OK = {
     "image/png", "image/jpeg", "image/webp", "image/heic", "image/heif", "image/gif",
     "application/pdf",
     "audio/wav", "audio/mp3", "audio/mpeg", "audio/aiff", "audio/aac", "audio/ogg", "audio/flac",
     "video/mp4", "video/mpeg", "video/mov", "video/quicktime", "video/webm",
 }
-MAX_INLINE = 18 * 1024 * 1024      # выше — Gemini требует загрузку через Files API
-MAX_TEXT = 200_000                 # столько символов текста хватает на любой документ
+MAX_INLINE = 18 * 1024 * 1024      # above this Gemini requires an upload via the Files API
+MAX_TEXT = 200_000                 # this many characters of text is enough for any document
 
 
 def guess_mime(name: str, data: bytes) -> str:
@@ -50,7 +50,7 @@ def guess_mime(name: str, data: bytes) -> str:
 
 
 def store(data: bytes, name: str, folder: Path) -> Path:
-    """Оригинал кладём рядом с дневником — чтобы можно было открыть глазами."""
+    """Keep the original next to the diary — so it can be opened and looked at."""
     folder.mkdir(parents=True, exist_ok=True)
     h = hashlib.sha1(data).hexdigest()[:10]
     safe = re.sub(r"[^\w.\-]+", "_", name)[-60:] or "file"
@@ -61,10 +61,10 @@ def store(data: bytes, name: str, folder: Path) -> Path:
 
 
 def as_part(data: bytes, mime: str, name: str) -> dict:
-    """Кусок для запроса в модель: либо сам файл, либо его текст."""
+    """A piece for the request to the model: either the file itself, or its text."""
     if mime in INLINE_OK and len(data) <= MAX_INLINE:
         return {"inlineData": {"mimeType": mime, "data": base64.b64encode(data).decode()}}
-    # не мультимедиа — пробуем как текст: код, csv, markdown, конфиги
+    # not multimedia — try it as text: code, csv, markdown, config files
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError:
@@ -81,8 +81,8 @@ _SPACE = re.compile(r"\n{3,}")
 
 
 def fetch_link(url: str) -> dict:
-    """Страница по ссылке → текст. Без внешних библиотек: тег вырезаем сами,
-    иначе в сборку пришлось бы тащить парсер ради одной функции."""
+    """A page behind a link → text. Without external libraries: we strip the tags
+    ourselves, otherwise the build would have to carry a parser for one function."""
     if not re.match(r"https?://", url):
         url = "https://" + url
     r = httpx.get(url, timeout=30, follow_redirects=True,
@@ -90,7 +90,7 @@ def fetch_link(url: str) -> dict:
     r.raise_for_status()
     ctype = (r.headers.get("content-type") or "").split(";")[0].strip()
 
-    if ctype in INLINE_OK:                       # ссылка сразу на картинку или PDF
+    if ctype in INLINE_OK:                       # the link points straight at an image or PDF
         return {"kind": "file", "mime": ctype, "data": r.content,
                 "name": url.rsplit("/", 1)[-1] or "download"}
 

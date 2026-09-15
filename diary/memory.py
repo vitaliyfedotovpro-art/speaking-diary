@@ -1,9 +1,9 @@
-"""Память дневника: HSAM + векторы Gemini.
+"""The diary's memory: HSAM plus Gemini vectors.
 
-Фасад, чтобы остальной код не знал ни про ctypes, ни про то, как считаются
-эмбеддинги. Здесь же живёт правило, которое отличает дневник от чата:
-что записывается человеком, а что — догадкой модели, и как это помечается
-в промпте.
+A facade, so the rest of the code knows nothing about ctypes or about how the
+embeddings are computed. Here too lives the rule that separates a diary from a chat:
+what was written by the person and what was a guess by the model, and how that is
+marked in the prompt.
 """
 from __future__ import annotations
 
@@ -16,15 +16,16 @@ from .hsam import (Hsam, SRC_USER, SRC_LLM, SRC_SELF, SRC_DOC, SRC_VERIFIED,
 _MARK = {SRC_USER: "⟨your words⟩", SRC_LLM: "⟨my guess⟩", SRC_SELF: "⟨about myself⟩",
          SRC_DOC: "⟨document⟩", SRC_VERIFIED: "⟨verified⟩", SRC_LEGACY: ""}
 
-# Движок хранит провенанс ЧИСЛОМ, а в снимок кладёт ИМЕНЕМ. Имена сняты с самого
-# движка прогоном, а не выведены из констант: source 0..5 → эти строки.
+# The engine keeps provenance as a NUMBER, but writes it into the snapshot as a NAME.
+# The names were taken from the engine by running it, not inferred from the
+# constants: source 0..5 → these strings.
 _SRC_NAMES = {"user_utterance": SRC_USER, "llm_generation": SRC_LLM,
               "llm_self_description": SRC_SELF, "external_doc": SRC_DOC,
               "verified_external": SRC_VERIFIED, "unknown_legacy": SRC_LEGACY}
 
 
 def source_of(row: dict) -> int:
-    """Провенанс в одном виде, откуда бы строка ни пришла — из снимка или из поиска."""
+    """Provenance in one shape, wherever the row came from — the snapshot or the search."""
     v = row.get("source_type")
     if isinstance(v, str):
         return _SRC_NAMES.get(v, SRC_LEGACY)
@@ -43,28 +44,28 @@ class Memory:
 
     def remember(self, text: str, source: int = SRC_USER,
                  tags: list[str] | None = None, canon: int = CANON_NONE) -> str:
-        """Записать факт. source решает, попадёт ли он когда-нибудь в выдачу:
-        SRC_SELF уходит в карантин навсегда — это защита от того, чтобы дневник
-        начал пересказывать человеку его жизнь в собственной редакции."""
+        """Write down a fact. `source` decides whether it will ever surface in recall:
+        SRC_SELF goes into quarantine for good — that is the protection against the
+        diary retelling a person their own life in its own edit."""
         text = (text or "").strip()
         if not text:
             return ""
-        # Мусор от распознавания: обрывки в два слова без глагола становились
-        # «фактами» — в дневнике завёлся «Кен — город в горах Альберты».
+        # Rubbish from speech recognition: two-word fragments without a verb became
+        # "facts" — the diary once acquired "Ken is a town in the Alberta mountains".
         if len(text) < 15 or len(text.split()) < 3:
             return ""
         try:
             vec = _embed.embed(text)
         except Exception:
-            vec = None                      # без вектора факт хранится, но не ищется
-        # Дубль по смыслу: одно и то же событие приходит разными формулировками
-        # из разных ходов, и память заполняется пересказами самой себя.
+            vec = None                      # without a vector the fact is stored but not searchable
+        # A duplicate by meaning: the same event arrives in different wordings from
+        # different turns, and memory fills up with retellings of itself.
         if vec is not None and source == SRC_USER:
             try:
                 near = self.h.search(vec, top_k=3)
                 for r in near:
                     if float(r.get("score", 0) or 0) >= 0.93:
-                        return ""           # уже знаем это, второй раз не пишем
+                        return ""           # we know this already, do not write it twice
             except Exception:
                 pass
         nid = self.h.add(text, vec, source=source, tags=tags, canon=canon)
@@ -81,8 +82,9 @@ class Memory:
         return self._with_provenance(self.h.search(qv, top_k=n))
 
     def _source_map(self) -> dict[str, str]:
-        """id → провенанс, из снимка. Перечитываем только когда снимок изменился:
-        иначе разбор всего файла ложился бы на каждый ход разговора."""
+        """id → provenance, from the snapshot. Re-read only when the snapshot has
+        changed: otherwise parsing the whole file would fall on every turn of the
+        conversation."""
         try:
             mtime = self.path.stat().st_mtime
         except OSError:
@@ -102,12 +104,12 @@ class Memory:
         return self._src_cache
 
     def _with_provenance(self, rows: list[dict]) -> list[dict]:
-        """🔴 Поиск через C-ABI отдаёт только node_id, content, cell_id, cosine и
-        score — провенанса в нём НЕТ (так написано и в заголовке движка). Из-за
-        этого пометки ⟨your words⟩/⟨my guess⟩ не проставлялись никогда, хотя промпт
-        велит модели на них опираться: она получала голый список без источников.
-        Достаём провенанс из снимка по node_id и заодно кладём id, на который
-        рассчитывают связи."""
+        """🔴 Search through the C-ABI returns only node_id, content, cell_id, cosine
+        and score — provenance is NOT in it (the engine's own header says so). Because
+        of that the ⟨your words⟩ / ⟨my guess⟩ marks were never emitted, even though the
+        prompt instructs the model to rely on them: it received a bare list with no
+        sources. We take provenance from the snapshot by node_id, and set the id that
+        the links code expects while we are here."""
         if not rows:
             return rows
         src = self._source_map()
@@ -121,8 +123,8 @@ class Memory:
         return rows
 
     def confirm(self, node_id: str, helpful: bool) -> None:
-        """Вердикт ЧЕЛОВЕКА о том, к месту ли всплыло воспоминание. Влияет на то,
-        как долго факт живёт под давлением, и никогда — на порядок выдачи."""
+        """A HUMAN's verdict on whether a memory surfaced to the point. It affects how
+        long a fact survives under pressure, and never the order of results."""
         self.h.feedback(node_id, helpful)
         self.h.save()
 
@@ -130,10 +132,10 @@ class Memory:
         return self.h.count()
 
     def nodes_with_vectors(self) -> tuple[list[dict], dict[str, list[float]]]:
-        """Всё содержимое памяти для опросника: узлы и их векторы.
+        """Everything in memory, for the questionnaire: the nodes and their vectors.
 
-        Читаем из снимка — C-ABI не умеет отдавать список целиком, а поиск
-        требует вектор запроса и по нулевому не возвращает ничего.
+        Read from the snapshot — the C-ABI cannot hand over the whole list, and search
+        requires a query vector and returns nothing for a zero one.
         """
         import json as _j
         try:
@@ -145,7 +147,7 @@ class Memory:
         raw = nx.get("nodes") or []
         nodes = list(raw.values()) if isinstance(raw, dict) else raw
         nodes = [n for n in nodes if isinstance(n, dict) and n.get("content")]
-        # index.vectors — список пар [id, вектор]; так его пишет движок
+        # index.vectors is a list of [id, vector] pairs; that is how the engine writes it
         vecs: dict[str, list[float]] = {}
         box = (snap.get("index") or {}).get("vectors") or []
         if isinstance(box, dict):
@@ -159,8 +161,8 @@ class Memory:
         return nodes, vecs
 
     def linked_context(self, rows: list[dict], links) -> list[dict]:
-        """Факты, связанные с найденными — по подтверждённым человеком связям.
-        Вектор такого не поднимет: связанное часто НЕ похоже."""
+        """Facts connected to the ones found — through links a human confirmed.
+        A vector will not raise these: the connected is often NOT similar."""
         if not rows or links is None:
             return []
         nodes, _ = self.nodes_with_vectors()

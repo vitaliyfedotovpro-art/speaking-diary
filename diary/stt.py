@@ -1,12 +1,13 @@
-"""Распознавание речи через Whisper на Groq.
+"""Speech to text through Whisper on Groq.
 
-Зачем отдельно, если Gemini и так принимает аудио: Gemini возвращает только
-ответ, а расшифровку держит при себе. Из-за этого в дневнике вместо слов
-человека оставалась заглушка, поиск по памяти шёл вслепую, а разобрать
-«она меня не поняла» от «микрофон записал тишину» было нечем.
+Why a separate service when Gemini already accepts audio: Gemini returns only its
+answer and keeps the transcription to itself. Because of that the diary held a
+placeholder where the person's words should be, memory was searched blind, and
+"she misunderstood me" could not be told apart from "the microphone recorded
+silence".
 
-Whisper отдаёт текст. Дальше всё идёт обычным текстовым путём: видно, что
-записано, память ищется по словам, а не по догадке.
+Whisper returns text. Everything downstream then follows the ordinary text path:
+what was recorded is visible, and memory is searched by words rather than by guess.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ MODEL = os.environ.get("DIARY_STT_MODEL", "whisper-large-v3-turbo")
 
 
 class SttUnavailable(RuntimeError):
-    """Ключа нет или сервис не ответил — не повод ронять разговор."""
+    """No key, or the service did not answer — not a reason to drop the conversation."""
 
 
 def transcribe(wav: bytes, language: str | None = None) -> str:
@@ -31,7 +32,7 @@ def transcribe(wav: bytes, language: str | None = None) -> str:
     data = {"model": MODEL, "response_format": "json",
             "temperature": "0"}
     if language:
-        data["language"] = language        # без него Whisper иногда «переводит» акцент
+        data["language"] = language        # without it Whisper sometimes "translates" an accent
     try:
         r = httpx.post(URL, headers={"Authorization": f"Bearer {key}"},
                        files={"file": ("speech.wav", wav, "audio/wav")},

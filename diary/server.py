@@ -1,7 +1,8 @@
-"""Локальный сервер дневника: отдаёт страницу и обслуживает её запросы.
+"""The diary's local server: it serves the page and handles its requests.
 
-Ничего наружу не слушает — только 127.0.0.1. Ключ Gemini берётся из окружения
-или из файла настроек рядом с базой; в браузер он не уходит.
+It listens to nothing outside — only 127.0.0.1. The Gemini key comes from the
+environment or from the settings file next to the database; it never reaches the
+browser.
 """
 from __future__ import annotations
 
@@ -35,11 +36,11 @@ _RT_CACHE: dict = {"ok": None}
 
 
 def _record(handler, user_text: str, answer: str, voice: bool = False) -> None:
-    """Разговор — в журнал. Факты отсюда БОЛЬШЕ НЕ разбираются: этим занят
-    _extract_sweep, раз в сессию. Здесь разбор стоил по запросу на каждый ход,
-    и на бесплатном тарифе (20 в сутки на модель) память умирала к обеду."""
+    """The conversation goes into the journal. Facts are NO LONGER distilled here:
+    _extract_sweep does that, once per session. Doing it here cost one request per
+    turn, and on the free tier (20 a day per model) memory died by lunchtime."""
     jr = handler.jr
-    handler.lk.tick()                       # ход прошёл — опросник ближе к вопросу
+    handler.lk.tick()                       # a turn has passed — the questionnaire is closer to asking
     jr.add_turn("you", user_text, voice=voice)
     jr.add_turn("diary", answer, voice=voice)
     if jr.needs_title():
@@ -50,8 +51,8 @@ def _record(handler, user_text: str, answer: str, voice: bool = False) -> None:
 
 
 def _realtime_available() -> bool:
-    """Пускает ли ключ в Live API. Считается один раз за запуск: соединение
-    небесплатное по времени, а тариф посреди сессии не меняется."""
+    """Whether the key is let into the Live API. Worked out once per launch: the
+    connection is not free in time, and the tier does not change mid-session."""
     if _RT_CACHE["ok"] is not None:
         return _RT_CACHE["ok"]
     import asyncio as _a
@@ -83,13 +84,13 @@ def _realtime_available() -> bool:
 
 
 class Handler(BaseHTTPRequestHandler):
-    mem: Memory = None                      # выставляется при старте
+    mem: Memory = None                      # set at startup
     jr: Journal = None
     lk: Links = None
     sup = None
     voice_port: int = 8792
 
-    def log_message(self, *a):              # молчим: свой лог печатаем сами
+    def log_message(self, *a):              # stay quiet: we print our own log
         pass
 
     def _send(self, code: int, body: bytes, ctype: str = "application/json"):
@@ -128,8 +129,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self.wfile.write(body)
             return self._json(d)
         if self.path.startswith("/api/quiz"):
-            # Вопрос о неочевидной связи. Не чаще раза в несколько ходов и только
-            # когда есть подходящая пара — иначе опросник превращается в допрос.
+            # A question about a non-obvious connection. No more often than once in
+            # several turns, and only when there is a suitable pair — otherwise the
+            # questionnaire turns into an interrogation.
             if not self.lk.due():
                 return self._json({"question": None,
                                    "turns": self.lk.turns_since_ask,
@@ -143,24 +145,25 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(f"[quiz] вопрос не составился: {e}")
                 return self._json({"question": None})
-            if not q:                       # модель сочла связь очевидной или бестактной
+            if not q:                       # the model found the link obvious or tactless
                 self.lk.save_answer(c["a"], c["b"], False, note="skipped by model",
                                     a_text=c["a_text"], b_text=c["b_text"])
                 return self._json({"question": None})
             self.lk.reset()
             return self._json({"question": q, "pair": c})
         if self.path.startswith("/api/export"):
-            # Выгружаем ВСЁ: и разговоры, и факты. Прежний экспорт собирал карточки
-            # со страницы и после переделки интерфейса отдавал пустой файл.
-            # Узлы берём из снимка, а не поиском: поиск требует вектор запроса и
-            # по нулевому не возвращает ничего. Снимок — полный список как есть.
+            # Export EVERYTHING: both conversations and facts. The old export gathered
+            # cards from the page and, after the interface was rebuilt, returned an
+            # empty file. Nodes are taken from the snapshot rather than by search:
+            # search needs a query vector and returns nothing for a zero one. The
+            # snapshot is the full list as it is.
             facts, edges = [], []
             try:
                 self.mem.h.save()
                 snap = json.loads((HOME / "diary.hsam.json").read_text(encoding="utf-8"))
                 nx = snap.get("nexus") or {}
                 raw_nodes = nx.get("nodes") or []
-                # в снимке nodes — СЛОВАРЬ id→узел, а не список
+                # in the snapshot `nodes` is a DICTIONARY id→node, not a list
                 if isinstance(raw_nodes, dict):
                     raw_nodes = list(raw_nodes.values())
                 for n in raw_nodes:
@@ -188,11 +191,11 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.startswith("/api/days"):
             return self._json({"days": self.jr.days()})
         if self.path.startswith("/api/capabilities"):
-            # Проверяем не по документации, а попыткой соединения: пустит ключ
-            # или нет, видно только так. 🔴 Прежний текст утверждал, что Live
-            # требует платного тарифа — замер 14.09.2026 на живом бесплатном
-            # ключе это опроверг: речь дошла, расшифровалась, модель ответила
-            # голосом. Обещать тариф нельзя, можно только спросить у ключа.
+            # Checked by attempting a connection rather than by reading documentation:
+            # whether the key is let in is visible only that way. 🔴 The old text
+            # claimed Live required a paid plan — a measurement on 14.09.2026 with a
+            # live free-tier key disproved it: speech arrived, was transcribed, and the
+            # model answered out loud. A tier cannot be promised, only asked of the key.
             return self._json({"report_channel": _callhome.configured(),
                                "stt": _stt.available(),
                                "realtime": _realtime_available(),
@@ -291,7 +294,8 @@ class Handler(BaseHTTPRequestHandler):
             HISTORY.append({"role": "user", "content": text})
             HISTORY.append({"role": "assistant", "content": answer})
             del HISTORY[:-16]
-            # запись фактов — в фоне: человек не должен ждать её ради ответа
+            # writing to the journal happens in the background: nobody should wait for
+            # the bookkeeping to get an answer
             threading.Thread(target=_record, args=(self, text, answer, False),
                              daemon=True).start()
             return self._json({"answer": answer,
@@ -299,8 +303,8 @@ class Handler(BaseHTTPRequestHandler):
                                              "source": x.get("source_type")} for x in r["used"]]})
 
         if self.path == "/api/voice":
-            """Рация: пришёл голос — вернулись текст и озвученный ответ.
-            Работает на бесплатном ключе, в отличие от Live API."""
+            """Walkie-talkie: voice came in — text and a spoken answer come back.
+            Works on a free key, unlike the Live API."""
             import base64 as _b64
             audio_b64 = body.get("audio") or ""
             voice = body.get("voice") or "Kore"
@@ -308,17 +312,19 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "no audio"}, 400)
             try:
                 raw = _b64.b64decode(audio_b64)
-                # Копия последней записи: без неё «она меня не слышит» не отличить
-                # от «микрофон пишет тишину». Файл один, перезаписывается.
+                # A copy of the last recording: without it "she cannot hear me" cannot
+                # be told apart from "the microphone is recording silence". One file,
+                # overwritten each time.
                 try:
                     (HOME / "last_voice.wav").write_bytes(raw)
                 except Exception:
                     pass
-                # Сначала СЛОВА, потом разговор. Gemini умеет слушать аудио сам, но
-                # расшифровку наружу не отдаёт: в дневнике оставалась заглушка вместо
-                # реплики, память искалась вслепую, а «не расслышала» было не отличить
-                # от «записалась тишина». Whisper возвращает текст — дальше всё идёт
-                # обычным текстовым путём.
+                # WORDS first, conversation second. Gemini can listen to audio itself,
+                # but it does not hand the transcription back: the diary was left with
+                # a placeholder instead of the turn, memory was searched blind, and
+                # "she misheard" could not be told apart from "silence was recorded".
+                # Whisper returns text — after that everything follows the ordinary
+                # text path.
                 said = ""
                 try:
                     said = _stt.transcribe(raw, language=body.get("language") or None)
@@ -339,7 +345,7 @@ class Handler(BaseHTTPRequestHandler):
                              daemon=True).start()
             wav = _tts.speak(answer, voice=voice)
             return self._json({"answer": answer,
-                               "transcript": said,          # то, что услышал Whisper
+                               "transcript": said,          # what Whisper heard
                                "audio": _b64.b64encode(wav).decode() if wav else "",
                                "recalled": len(r["used"])})
 
@@ -356,7 +362,7 @@ class Handler(BaseHTTPRequestHandler):
             dest = (body.get("dest") or os.environ.get("DIARY_BACKUP_DIR") or "").strip()
             if not dest:
                 return self._json({"ok": False, "error": "choose a folder first"}, 400)
-            self.mem.h.save()                      # сначала сбросить память на диск
+            self.mem.h.save()                      # flush memory to disk first
             r = _backup.make(HOME, dest)
             if r.get("ok"):
                 os.environ["DIARY_BACKUP_DIR"] = dest
@@ -370,8 +376,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(_backup.restore(body.get("file") or "", HOME))
 
         if self.path == "/api/report":
-            """Полный отчёт: серверная часть плюс то, что видит браузер —
-            микрофон, устройства, ошибки JS. Сервер про них ничего не знает."""
+            """The full report: the server side plus what the browser sees — the
+            microphone, the devices, JS errors. The server knows nothing about those."""
             d = _diag.collect(HOME, self.mem, self.jr, {"client": body.get("client") or {}})
             try:
                 f = HOME / "diagnostics.txt"
@@ -386,22 +392,22 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/support/close":
             return self._json(self.sup.close())
         if self.path == "/api/support/run":
-            # проверка из списка — по имени. Произвольных команд здесь нет.
+            # a check from the list, by name. There are no arbitrary commands here.
             name = (body.get("check") or "").strip()
             return self._json({"check": name, "output": self.sup.run(name)})
 
         if self.path == "/api/report/send":
-            """Отчёт уходит тому, кто ставил дневник. Человек перед отправкой
-            видит ровно тот текст, который улетит — без сюрпризов."""
+            """The report goes to whoever installed the diary. Before sending, the
+            person sees exactly the text that will leave — no surprises."""
             d = _diag.collect(HOME, self.mem, self.jr, {"client": body.get("client") or {}})
             text = _diag.as_text(d)
             r = _callhome.send(text, body.get("complaint", ""), body.get("who", ""))
             return self._json({**r, "text": text})
 
         if self.path == "/api/keys":
-            """Ключи, введённые пользователем. Держим только в памяти процесса и
-            в файле рядом с дневником — наружу они не уходят никуда, кроме
-            самих Google и Groq."""
+            """Keys entered by the user. Held only in the process's memory and in a
+            file next to the diary — they go nowhere else except to Google and Groq
+            themselves."""
             saved = []
             for field, var, fname in (("gemini", "GEMINI_API_KEY", "key"),
                                       ("groq", "GROQ_API_KEY", "groq_key")):
@@ -416,12 +422,12 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as e:
                     return self._json({"ok": False, "error": str(e)}, 500)
                 saved.append(field)
-            _RT_CACHE["ok"] = None            # тариф мог измениться — проверим заново
+            _RT_CACHE["ok"] = None            # the tier may have changed — check again
             return self._json({"ok": True, "saved": saved})
 
         if self.path == "/api/attach":
-            """Файл или ссылка в разговор. Оригинал кладём рядом, в память идёт
-            смысл, а не байты."""
+            """A file or a link into the conversation. The original is kept alongside;
+            what goes into memory is the meaning, not the bytes."""
             import base64 as _b64
             note = (body.get("text") or "").strip()
             url = (body.get("url") or "").strip()
@@ -470,12 +476,12 @@ class Handler(BaseHTTPRequestHandler):
             self.lk.save_answer(pair.get("a", ""), pair.get("b", ""), linked,
                                 note=body.get("note", ""),
                                 a_text=pair.get("a_text", ""), b_text=pair.get("b_text", ""))
-            # подтверждённая связь — сама по себе факт о жизни, её стоит помнить
+            # a confirmed connection is itself a fact about a life, worth remembering
             if linked and body.get("note"):
                 self.mem.remember(body["note"].strip()[:300], source=SRC_USER)
             return self._json({"ok": True})
 
-        if self.path == "/api/remember":            # явная запись «запомни это»
+        if self.path == "/api/remember":            # an explicit "remember this"
             t = (body.get("text") or "").strip()
             canon = CANON_FOUNDATIONAL if body.get("canon") else 0
             return self._json({"id": self.mem.remember(t, source=SRC_USER, canon=canon)})
@@ -503,8 +509,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def _title_sweep(handler) -> None:
-    """Безымянным сессиям раздаём названия. Живой разговор идёт мимо _record,
-    поэтому его сессии оставались «Untitled» — заголовок им нужен так же."""
+    """Untitled sessions get names. A live conversation goes past _record, so its
+    sessions used to stay "Untitled" — they need a title just as much."""
     def loop():
         while True:
             time.sleep(90)
@@ -517,20 +523,20 @@ def _title_sweep(handler) -> None:
 
 
 def _extract_sweep(handler) -> None:
-    """Разбор разговоров на факты — РАЗ В СЕССИЮ, общий для голоса и текста.
+    """Distilling conversations into facts — ONCE PER SESSION, shared by voice and text.
 
-    Оба режима пишут в один журнал, поэтому и разбирать их должен один проход:
-    прежде текст разбирался в _record, голос — в voice._settle, и каждый тратил
-    по запросу на ход. Теперь разговор дозревает (три минуты тишины или дюжина
-    неразобранных ходов) и уходит в модель одним куском.
+    Both modes write into the same journal, so one pass should handle both: text used
+    to be distilled in _record and voice in voice._settle, and each spent a request per
+    turn. Now a conversation ripens (three minutes of silence, or a dozen undistilled
+    turns) and goes to the model in one piece.
     """
     def loop():
         while True:
             time.sleep(60)
             try:
-                # не больше трёх за проход: если после сбоя накопилось много
-                # неразобранных разговоров, они разойдутся по минутам, а не
-                # выберут суточную квоту одним залпом
+                # no more than three per pass: if many undistilled conversations have
+                # piled up after a failure, they spread out over minutes instead of
+                # draining the daily quota in one volley
                 for s in handler.jr.pending()[:3]:
                     turns = s.get("turns") or []
                     done = int(s.get("extracted") or 0)
@@ -544,8 +550,8 @@ def _extract_sweep(handler) -> None:
 
 
 def _start_autobackup(handler) -> None:
-    """Копия раз в час, если папка выбрана. Дневник копится молча, и человек
-    вспоминает о копии ровно тогда, когда она уже нужна."""
+    """A copy once an hour, if a folder has been chosen. The diary accumulates quietly,
+    and a person remembers about a backup exactly when it is already needed."""
     def loop():
         while True:
             time.sleep(3600)
@@ -563,8 +569,9 @@ def _start_autobackup(handler) -> None:
 
 
 def _start_voice(mem, port: int, jr=None) -> None:
-    """Голосовой мост живёт в своём потоке со своим циклом: http.server —
-    синхронный, а Live API асинхронный, и мешать их в одном цикле незачем."""
+    """The voice bridge lives in its own thread with its own loop: http.server is
+    synchronous, the Live API is asynchronous, and there is no reason to mix them in
+    one loop."""
     import asyncio as _a
     from . import voice as _voice
 
@@ -593,7 +600,7 @@ def serve(port: int = 8791, open_browser: bool = True, voice_port: int = 8792) -
         print(f"  журнал: {_old} прежних разговоров отмечены как разобранные")
     Handler.lk = Links(HOME / "links.jsonl")
     Handler.sup = _support.Support(HOME, Handler.mem, Handler.jr)
-    # куда писать копии — помним между запусками
+    # where to write copies — remembered between launches
     if not os.environ.get("DIARY_BACKUP_DIR") and (HOME / "backup_dir").exists():
         os.environ["DIARY_BACKUP_DIR"] = (HOME / "backup_dir").read_text(encoding="utf-8").strip()
     _start_autobackup(Handler)

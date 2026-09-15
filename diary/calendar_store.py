@@ -1,4 +1,4 @@
-"""Управление календарем дел, расписанием и экспресс-стикерами."""
+"""Managing the calendar of affairs, the schedule and the quick stickers."""
 from __future__ import annotations
 
 import json

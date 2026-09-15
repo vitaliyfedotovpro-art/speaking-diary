@@ -1,22 +1,22 @@
-"""Режим поддержки: временный канал для разбора неполадок.
+"""Support mode: a temporary channel for working out what went wrong.
 
-Как это работает. Человек нажимает «Allow support session» и получает короткий
-код. Пока сессия открыта, приложение раз в несколько секунд спрашивает у канала,
-нет ли для него задания, выполняет ОДНУ из разрешённых проверок и отправляет
-результат. Сессия гаснет сама через час и по кнопке — в любой момент.
+How it works. The person presses "Allow support session" and gets a short code.
+While the session is open, the application asks the channel every few seconds
+whether there is a task for it, runs ONE of the permitted checks, and sends back the
+result. The session dies on its own after an hour, and by the button at any moment.
 
-⛔ ЧЕГО ЗДЕСЬ НЕТ И НЕ БУДЕТ
+⛔ WHAT IS NOT HERE AND WILL NOT BE
 
-· Произвольных команд. Выполняются только проверки из списка ниже — это не
-  «выполни что пришлют», а «ответь на один из заранее известных вопросов».
-  Список закрыт: чего в нём нет, того сделать нельзя, даже если попросят.
+· Arbitrary commands. Only the checks listed below are run — this is not "execute
+  whatever arrives" but "answer one of a set of questions known in advance". The
+  list is closed: what is not in it cannot be done, even if asked for.
 
-· Доступа к дневнику. Содержимое памяти, тексты разговоров, вложения и ключи
-  недоступны ни одной проверке. Смотреть можно на то, ЧТО СЛОМАЛОСЬ, а не на то,
-  ЧТО ЧЕЛОВЕК НАПИСАЛ. Это не настройка, которую можно поменять, — таких
-  проверок просто не существует.
+· Access to the diary. The contents of memory, the text of conversations,
+  attachments and keys are unavailable to every check. What can be looked at is
+  WHAT BROKE, not WHAT THE PERSON WROTE. This is not a setting that can be changed —
+  such checks simply do not exist.
 
-· Постоянного включения. Без нажатия кнопки канал не открывается вообще.
+· Being permanently on. Without pressing the button the channel does not open at all.
 """
 from __future__ import annotations
 
@@ -33,8 +33,8 @@ from pathlib import Path
 
 import httpx
 
-TTL = 3600          # сессия живёт час и гаснет сама
-POLL = 6            # как часто спрашивать задание
+TTL = 3600          # a session lives an hour and dies on its own
+POLL = 6            # how often to ask for a task
 
 
 class Support:
@@ -45,7 +45,7 @@ class Support:
         self.log: list[str] = []
         self._stop = threading.Event()
 
-    # ── что вообще можно спросить ────────────────────────────────────────
+    # ── what can be asked at all ─────────────────────────────────────────
     def actions(self) -> dict:
         return {
             "status":     self._status,
@@ -70,7 +70,8 @@ class Support:
         return d.as_text(d.collect(self.home, self.mem, self.jr))
 
     def _logtail(self) -> str:
-        """Последние строки лога. Реплики туда не пишутся — только события."""
+        """The last lines of the log. Conversation turns are never written there —
+        only events."""
         p = self.home / "app.log"
         if not p.exists():
             return "no log file"
@@ -81,7 +82,7 @@ class Support:
             return f"cannot read log: {e}"
 
     def _files(self) -> str:
-        """Имена и размеры — без содержимого. Вложения только считаем."""
+        """Names and sizes — without contents. Attachments are only counted."""
         out = []
         for name in ("diary.hsam.json", "journal.jsonl", "links.jsonl",
                      "key", "groq_key", "backup_dir"):
@@ -130,7 +131,7 @@ class Support:
                 f"{platform.system()} {platform.release()} {platform.machine()}\n"
                 f"packaged: {bool(getattr(sys, 'frozen', False))}\n" + "\n".join(mods))
 
-    # ── жизнь сессии ─────────────────────────────────────────────────────
+    # ── the life of a session ────────────────────────────────────────────
     def open(self) -> dict:
         if not os.environ.get("DIARY_SUPPORT_URL", "").strip():
             return {"ok": False, "why": "no support channel configured in this build"}
@@ -162,8 +163,9 @@ class Support:
             return "check failed:\n" + traceback.format_exc()[-800:]
 
     def _loop(self) -> None:
-        """Спрашиваем канал, нет ли задания. Приложение ходит НАРУЖУ само —
-        порты для входящих соединений не открываются, файрвол не трогаем."""
+        """Ask the channel whether there is a task. The application reaches OUT by
+        itself — no ports are opened for incoming connections, the firewall is left
+        alone."""
         url = os.environ.get("DIARY_SUPPORT_URL", "").strip().rstrip("/")
         while not self._stop.is_set() and time.time() < self.until:
             try:

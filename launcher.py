@@ -1,7 +1,7 @@
-"""Точка входа для собранного приложения.
+"""Entry point for the packaged application.
 
-Отличается от `python -m diary.server` тем, что сама находит свои файлы внутри
-упакованного архива и открывает браузер. Всё остальное — тот же сервер.
+It differs from `python -m diary.server` in that it finds its own files inside the
+packed archive and opens the browser. Everything else is the same server.
 """
 import os
 import sys
@@ -9,13 +9,14 @@ from pathlib import Path
 
 
 def _base() -> Path:
-    """Где лежат ресурсы: рядом со скриптом или внутри собранного файла."""
+    """Where the resources are: next to the script, or inside the packed file."""
     return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 
 def _ensure_desktop_shortcut() -> None:
-    """На Windows кладём ярлык на рабочий стол при первом запуске — чтобы дневник
-    открывался с иконки, а не поиском файла. Тихо: не вышло — не беда."""
+    """On Windows we put a shortcut on the desktop at first launch — so the diary
+    opens from an icon rather than by hunting for a file. Quietly: if it fails,
+    never mind."""
     if sys.platform != "win32":
         return
     try:
@@ -27,7 +28,7 @@ def _ensure_desktop_shortcut() -> None:
         link = desktop / "Diary.lnk"
         if link.exists() or not desktop.exists():
             return
-        # ярлык через PowerShell — без сторонних библиотек
+        # the shortcut via PowerShell — no third-party libraries
         import subprocess
         ps = (f"$s=(New-Object -ComObject WScript.Shell).CreateShortcut('{link}');"
               f"$s.TargetPath='{exe}';$s.IconLocation='{exe},0';$s.Save()")
@@ -41,7 +42,7 @@ def main() -> None:
     base = _base()
     sys.path.insert(0, str(base))
 
-    # ключи: из окружения, иначе из папки дневника — их вводит сам пользователь
+    # keys: from the environment, otherwise from the diary folder — the user enters them
     home = Path(os.environ.get("DIARY_HOME", Path.home() / ".diary"))
     for var, fname in (("GEMINI_API_KEY", "key"), ("GROQ_API_KEY", "groq_key")):
         if not os.environ.get(var):
@@ -49,10 +50,10 @@ def main() -> None:
             if f.exists():
                 os.environ[var] = f.read_text(encoding="utf-8").strip()
 
-    # Куда уходит кнопка «постучаться». Задаётся при сборке: отдельный бот или
-    # тема ntfy, не рабочие. Адрес виден любому, кто вскроет файл, — поэтому
-    # канал должен быть одноразовым и легко заменяемым.
-    os.environ.setdefault("DIARY_REPORT_URL", "")   # ← вписать перед сборкой
+    # Where the "knock on the door" button sends to. Set at build time: a separate
+    # bot or ntfy topic, not a working one. The address is visible to anyone who
+    # opens the file — so the channel must be disposable and easy to replace.
+    os.environ.setdefault("DIARY_REPORT_URL", "")   # ← fill in before building
 
     _ensure_desktop_shortcut()
 
@@ -61,7 +62,7 @@ def main() -> None:
     try:
         serve(port=port)
     except OSError as e:
-        # порт занят — почти всегда это второй запуск того же дневника
+        # the port is taken — almost always a second launch of the same diary
         print(f"Не удалось занять порт {port}: {e}\n"
               f"Возможно, дневник уже открыт — загляни в http://127.0.0.1:{port}/")
         input("Enter, чтобы закрыть…")

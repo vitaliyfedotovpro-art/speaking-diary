@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Personal Diary</title>
   <meta name="color-scheme" content="dark light">
-  <!-- Описание видят поисковики и превью ссылок. Прежнее объявляло сутью всего
-       дневника одну из атмосфер («70% Canada / 30% South India») — она осталась,
-       но теперь это одна тема из девяти, а не лицо продукта. -->
+  <!-- Search engines and link previews show this description. The old one declared
+       one of the atmospheres ("70% Canada / 30% South India") to be the essence of
+       the whole diary — it is still there, but as one theme out of nine rather than
+       the face of the product. -->
   <meta name="description" content="A personal speaking diary that listens, remembers and talks back. Runs on your own machine. Two ways in: a notebook you leaf through, and a live voice you can interrupt.">
 
   <!-- Instant theme initialization (FOUC prevention + URL param support) -->
@@ -4450,8 +4451,8 @@
 </style>
 
 <script>
-/* Имя владельца спрашивается при первом запуске и живёт только у него в браузере.
-   В коде его быть не должно: сборка одна, а дневник у каждого свой. */
+/* The owner's name is asked for at first launch and lives only in their browser.
+   It must not be in the code: the build is one, the diary is everyone's own. */
 function ownerName() {
   try { return (localStorage.getItem('diary-owner') || '').trim() || 'you'; }
   catch (e) { return 'you'; }
@@ -5486,11 +5487,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="storage-path-badge">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-            <!-- Путь и число записей приходят от сервера. Прежде здесь стояла
-                 выдуманная строка про базу SQLite: такой базы нет вовсе, память
-                 держит HSAM и файл лежит в другом месте, число узлов было взято
-                 с потолка, а в пути светился домашний каталог того, кто это
-                 писал. Чужой каталог в чужой сборке показывать нечего. -->
+            <!-- The path and the number of entries come from the server. There used
+                 to be an invented line here about a SQLite database: there is no such
+                 database at all, memory is held by HSAM and the file lives elsewhere,
+                 the node count was made up, and the path showed the home directory of
+                 whoever wrote it. Somebody else's directory has no business appearing
+                 in somebody else's build. -->
             <span>Local storage: <code id="storagePathValue">~/.diary</code><span id="storageNodeCount"></span></span>
           </div>
         </section>
@@ -6229,9 +6231,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function getAudioContext() {
       if (!audioCtx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        // Выбранный выход задаём при создании контекста — задать его позже нельзя.
-        // Свежие браузеры это умеют; где нет, тихо берём системный, чтобы не
-        // остаться вообще без звука.
+        // The chosen output is set when the context is created — it cannot be set
+        // later. Recent browsers can do this; where they cannot, we quietly fall back
+        // to the system one rather than end up with no sound at all.
         const outId = window.diaryAudio ? window.diaryAudio.outputId() : '';
         try {
           audioCtx = outId ? new AudioContext({ sinkId: outId }) : new AudioContext();
@@ -6319,8 +6321,9 @@ document.addEventListener('DOMContentLoaded', () => {
     notebookThemeToggleBtn.addEventListener('click', toggleTheme);
 
     /* ── Language Toggle ─────────────────────────────────────────────────── */
-    // Кнопка показывает язык, НА который переключит. Выбор пишется туда же, где
-    // его держит селект в настройках, — иначе они разойдутся после перезагрузки.
+    // The button shows the language it will switch TO. The choice is written to the
+    // same place the settings dropdown keeps it — otherwise the two would disagree
+    // after a reload.
     function langToggleBtns() {
       return ['langToggleBtn', 'notebookLangToggleBtn']
         .map(id => document.getElementById(id)).filter(Boolean);
@@ -6389,8 +6392,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (r.ok) {
           const st = await r.json();
           voiceWsUrl = st.voice_ws || 'ws://127.0.0.1:8792';
-          // Где на самом деле лежит память — берём у сервера, а не пишем в разметке:
-          // у каждого свой каталог, и DIARY_HOME его меняет.
+          // Where memory actually lives comes from the server rather than being
+          // written into the markup: everyone has their own folder, and DIARY_HOME
+          // changes it.
           const pathEl = document.getElementById('storagePathValue');
           if (pathEl && st.db) pathEl.textContent = st.db;
           const countEl = document.getElementById('storageNodeCount');
@@ -7098,7 +7102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // CASE 2: Today's Active New Chat (Текущий новый чат - ЧИСТЫЙ ЛИСТ)
+      // CASE 2: Today's Active New Chat (the current new conversation — A CLEAN SHEET)
       if (notebookBreadcrumb) {
         notebookBreadcrumb.textContent = `${todayFormatted} · ${t.newDialogue}`;
       }
@@ -7309,9 +7313,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       function addLiveInput(seconds) {
-        // 32 токена на секунду входящего звука × $3 за 1M (замерено по прайсу
-        // и сверено с его же ценой за минуту). Было 0.000075 — это 25 ток/с,
-        // и панель занижала вход на 22%.
+        // 32 tokens per second of inbound audio × $3 per 1M (taken from the price
+        // list and checked against its own per-minute figure). It used to be
+        // 0.000075 — that is 25 tokens/s, and the panel understated input by 22%.
         const cost = seconds * 0.000096;
         recordUsage(cost, s => {
           s.liveInputSec = (s.liveInputSec || 0) + seconds;
@@ -7329,10 +7333,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       function addWalkie(inputSec, outputSec) {
         const sttCost = (inputSec / 3600) * 0.04;          // Groq whisper turbo, $0.04/час
-        // Gemini TTS стоит $20 за 1M выходных токенов, а не $10 — было занижено вдвое.
+        // Gemini TTS costs $20 per 1M output tokens, not $10 — it was understated twofold.
         const ttsCost = outputSec * (25 * 20.00 / 1_000_000);
-        // Ход разговора замерен по usageMetadata: $0.0037 с размышлением модели,
-        // а не плоские $0.0003. Занижение было двенадцатикратным.
+        // A conversation turn was measured through usageMetadata: $0.0037 including
+        // the model's thinking, not a flat $0.0003. The understatement was twelvefold.
         const cost = sttCost + ttsCost + 0.0037;
         recordUsage(cost, s => {
           s.walkieTurns = (s.walkieTurns || 0) + 1;
@@ -7342,11 +7346,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       function addChat(inLen, outLen) {
-        // Ставки gemini-3.8-flash: $0.75 за 1M входа и $3.75 за 1M выхода.
-        // Прежние 0.15/0.60 занижали счёт в пять раз. И главное: модель ДУМАЕТ
-        // перед ответом — замер дал 654 токена размышления против 144 в самом
-        // ответе, и они оплачиваются как выход. Без этого слагаемого панель
-        // показывала бы треть правды.
+        // gemini-3.8-flash rates: $0.75 per 1M in and $3.75 per 1M out. The old
+        // 0.15/0.60 understated the bill fivefold. And above all: the model THINKS
+        // before answering — a measurement gave 654 tokens of thinking against 144 in
+        // the answer itself, and they are billed as output. Without that term the
+        // panel would show a third of the truth.
         const inTokens = Math.ceil(inLen / 4) + 2500;
         const outTokens = Math.ceil(outLen / 4) + 600;
         const cost = (inTokens / 1_000_000) * 0.75 + (outTokens / 1_000_000) * 3.75;
@@ -8822,9 +8826,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function playBase64Audio(b64) {
-      // Если выбраны конкретные наушники — играем через <audio>: направить звук
-      // умеет только он (setSinkId), у AudioContext такого нет. Иначе — прежним
-      // путём через контекст, он надёжнее и не зависит от политики автовоспроизведения.
+      // If particular headphones are chosen, play through <audio>: only it can steer
+      // the sound (setSinkId), AudioContext has nothing of the kind. Otherwise take
+      // the old path through the context — it is more reliable and does not depend on
+      // the autoplay policy.
       const binaryStr = atob(b64);
       const bytes = new Uint8Array(binaryStr.length);
       for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
@@ -8916,11 +8921,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try { speakerAnalyser.connect(ctx.destination); } catch (e) {}
       }
 
-      // 🔴 Микрофон нужен ДЛЯ ДВУХ вещей сразу: анимации и передачи речи в Live API.
-      // Раньше он подключался только к анализатору — реактор красиво дышал, а модель
-      // не слышала ни звука: соединение живое, аудио в него не идёт.
-      // Контекст свой, на 16 кГц: в мост поток уходит с пометкой rate=16000, а общий
-      // контекст отдаёт 48 кГц, и модель слышит кашу втрое быстрее заявленной.
+      // 🔴 The microphone is needed for TWO things at once: the animation and sending
+      // speech to the Live API. It used to be connected only to the analyser — the
+      // reactor breathed beautifully while the model heard nothing at all: the
+      // connection was alive, no audio went into it.
+      // Its own context, at 16 kHz: the stream reaches the bridge labelled rate=16000,
+      // while the shared context gives 48 kHz and the model hears mush at three times
+      // the declared speed.
       try {
         liveMicCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
       } catch (e) {
@@ -8940,12 +8947,13 @@ document.addEventListener('DOMContentLoaded', () => {
         liveMicSource = liveMicCtx.createMediaStreamSource(liveMicStream);
         liveMicSource.connect(micAnalyser);
 
-        // 🔴 Гейт по тишине. Live API берёт деньги за ВСЁ время входящего потока,
-        // включая молчание — это подтверждено ответом Google, ставка та же
-        // 32 токена в секунду. В реальном профиле разговора речь занимает
-        // 4.6 минуты из 29: без гейта пять шестых входящего счёта — оплаченная
-        // тишина. Шлём только когда слышно голос, плюс хвост: по нему серверный
-        // VAD понимает, что реплика закончилась, и без хвоста ход не закрывался бы.
+        // 🔴 A gate on silence. The Live API charges for the WHOLE duration of the
+        // inbound stream, silence included — confirmed by Google's own answer, at the
+        // same rate of 32 tokens per second. In a real conversation profile speech
+        // takes 4.6 minutes out of 29: without the gate, five sixths of the inbound
+        // bill is paid-for silence. We send only when a voice is audible, plus a tail:
+        // the server-side VAD uses it to tell that a turn has ended, and without the
+        // tail the turn would never close.
         const VAD_LEVEL = 0.012;        // порог громкости (RMS)
         const VAD_TAIL_MS = 700;        // сколько ещё шлём после последнего звука
         let lastVoiceAt = 0;
@@ -9000,10 +9008,10 @@ document.addEventListener('DOMContentLoaded', () => {
       reactorConnected = false;
     }
 
-    // ── Воспроизведение речи реактора ──────────────────────────────────────
-    // Live API шлёт PCM 24 кГц кусками. Играть их по мере прихода нельзя —
-    // между кусками возникнут щелчки и паузы. Поэтому очередь: каждый следующий
-    // кусок ставится строго в конец предыдущего.
+    // ── Playing back the reactor's speech ──────────────────────────────────
+    // The Live API sends PCM at 24 kHz in chunks. They cannot be played as they
+    // arrive — clicks and gaps would appear between them. Hence a queue: every next
+    // chunk is placed strictly at the end of the previous one.
     let livePlayCtx = null;
     let nextPlayTime = 0;
     let lastActiveSoundTime = performance.now();
@@ -9016,7 +9024,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!livePlayCtx) { livePlayCtx = ctx; nextPlayTime = ctx.currentTime; }
         const pcm = new Int16Array(buf);
         if (!pcm.length) return;
-        // буфер объявляем на 24 кГц — браузер сам пересчитает под свой контекст
+        // declare the buffer at 24 kHz — the browser resamples it to its own context
         const ab = ctx.createBuffer(1, pcm.length, 24000);
         const ch = ab.getChannelData(0);
         for (let i = 0; i < pcm.length; i++) ch[i] = pcm[i] / 32768;
@@ -9043,7 +9051,8 @@ document.addEventListener('DOMContentLoaded', () => {
         reactorWs.binaryType = 'arraybuffer';
         reactorWs.onopen = () => {
           reactorConnected = true;
-          // Первым сообщением — выбранный голос. Мост ждёт его до начала сессии.
+          // The first message carries the chosen voice. The bridge waits for it before
+          // starting the session.
           try {
             const cfg = window.getSettings ? window.getSettings() : {};
             reactorWs.send(JSON.stringify({ type: 'config', voice: cfg.voice || 'Kore' }));
@@ -9051,8 +9060,9 @@ document.addEventListener('DOMContentLoaded', () => {
           showReactorSubtitle((I18N[currentLang] || I18N.en).reactorBridgeConnected);
         };
         reactorWs.onmessage = (event) => {
-          // 🔴 Речь приходит БИНАРНО. Раньше обрабатывались только строки, и звук
-          // ответа молча выбрасывался — выглядело как «реактор не отвечает».
+          // 🔴 Speech arrives as BINARY. Only strings used to be handled, and the
+          // sound of the answer was silently thrown away — it looked like "the reactor
+          // does not respond".
           if (event.data instanceof ArrayBuffer) {
             playLivePCM(event.data);
             if (window.diaryBilling) {
@@ -9064,7 +9074,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (typeof event.data !== 'string') return;
           let msg;
           try { msg = JSON.parse(event.data); } catch (e) { return; }
-          // протокол моста: {type:'transcript', who, text} — поля msg.transcript нет
+          // the bridge protocol is {type:'transcript', who, text} — there is no msg.transcript field
           if (msg.type === 'transcript' && msg.text) {
             showReactorSubtitle(msg.text);
           } else if (msg.type === 'interrupted') {
@@ -9844,8 +9854,9 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
           if (!ok) return;
         }
 
-        // Ключ нужен СЕРВЕРУ: разговор идёт через него, а localStorage он не видит.
-        // Без этого онбординг «проходил», а дневник оставался без ключа.
+        // The SERVER is the one that needs the key: the conversation goes through it,
+        // and it cannot see localStorage. Without this the onboarding "succeeded"
+        // while the diary was left with no key.
         try {
           await fetch('/api/keys', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -9894,9 +9905,9 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     updateSettingsModalStrings();
 
     // Check keys for first-launch routing (GEMINI_TASK_onboarding2)
-    // Ключ может жить у сервера (~/.diary/key), а в localStorage его нет: новый
-    // порт или другой браузер. Прежняя проверка смотрела только в браузер и гнала
-    // на онбординг человека с рабочим ключом.
+    // The key may live on the server (~/.diary/key) while localStorage has none: a new
+    // port, or a different browser. The old check looked only in the browser and drove
+    // a person with a working key into onboarding.
     const storedGeminiKey = localStorage.getItem('diary-gemini-api-key');
     fetch('/api/settings').then(r => r.json()).then(st => {
       if (st.hasKey || storedGeminiKey) {
@@ -10838,9 +10849,9 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
   </script>
 
 <script>
-/* Резервные копии: список мест приходит с сервера — он знает, какие диски и
-   облачные папки реально есть на этой машине. Раз в час копия делается сама,
-   если место выбрано. */
+/* Backups: the list of destinations comes from the server — it knows which drives
+   and cloud folders actually exist on this machine. Once an hour a copy is made on
+   its own, if a destination has been chosen. */
 (function () {
   window.addEventListener('DOMContentLoaded', () => {
     const sel = document.getElementById('backupTargetSelect');
@@ -10884,8 +10895,8 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
 </script>
 
 <script>
-/* Экспорт берём с сервера: на странице лежит только текущий разворот, а выгрузить
-   надо весь дневник — и разговоры, и факты из памяти. */
+/* The export comes from the server: the page holds only the current spread, while
+   what has to be exported is the whole diary — conversations and facts alike. */
 (function () {
   window.addEventListener('DOMContentLoaded', () => {
     const b = document.getElementById('exportDiaryBtn');
@@ -10912,10 +10923,11 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
 </script>
 
 <script>
-/* ── Файлы и ссылки ──────────────────────────────────────────────────────────
-   Три способа, потому что люди делают это по-разному: перетащить, вставить из
-   буфера (скриншот — самый частый случай) и вставить ссылку прямо в поле ввода.
-   Файл уходит на сервер, там Gemini его читает; оригинал остаётся на диске. */
+/* ── Files and links ─────────────────────────────────────────────────────────
+   Three ways, because people do this differently: drag it in, paste from the
+   clipboard (a screenshot is the commonest case), and paste a link straight into the
+   input. The file goes to the server, Gemini reads it there; the original stays on
+   disk. */
 (function () {
   const LINK_RE = /^https?:\/\/\S+$|^www\.\S+$/i;
 
@@ -10984,7 +10996,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     }
   }
 
-  /* перетаскивание на страницу */
+  /* dragging onto the page */
   let dragDepth = 0;
   const veil = document.createElement('div');
   veil.style.cssText = 'position:fixed;inset:0;z-index:9998;display:none;' +
@@ -11010,7 +11022,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     handleFiles(e.dataTransfer.files);
   });
 
-  /* вставка из буфера: Cmd+V со скриншотом или ссылкой */
+  /* pasting from the clipboard: Cmd+V with a screenshot or a link */
   window.addEventListener('paste', e => {
     const items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
@@ -11019,14 +11031,14 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     if (files.length) { e.preventDefault(); handleFiles(files); return; }
     const txt = (e.clipboardData.getData('text') || '').trim();
     const box = document.getElementById('penInput') || document.getElementById('textInput');
-    // ссылку перехватываем, только когда поле ввода пустое — иначе мешаем печатать
+    // intercept a link only when the input is empty — otherwise we get in the way of typing
     if (LINK_RE.test(txt) && (!box || !box.value.trim())) {
       e.preventDefault();
       send({ url: txt }, '🔗 ' + txt);
     }
   });
 
-  /* ссылка, отправленная как обычное сообщение */
+  /* a link sent as an ordinary message */
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('penForm') || document.getElementById('inputForm');
     const box = document.getElementById('penInput') || document.getElementById('textInput');
@@ -11036,7 +11048,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
         if (LINK_RE.test(v)) { e.preventDefault(); e.stopPropagation(); box.value = ''; send({ url: v }, '🔗 ' + v); }
       }, true);
     }
-    /* скрепка рядом с микрофоном */
+    /* the paperclip next to the microphone */
     const mic = document.getElementById('notebookMicBtn') || document.getElementById('micBtn');
     if (!mic || !mic.parentElement) return;
     const inp = document.createElement('input');
@@ -11062,14 +11074,16 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
 </script>
 
 <script>
-/* ── Выбор аудиоустройств (в том числе Bluetooth) ────────────────────────────
-   Наушники, подключённые к системе, видны браузеру как обычные устройства — но
-   имена появляются только ПОСЛЕ разрешения на микрофон: до него браузер отдаёт
-   пустые ярлыки, чтобы по набору устройств нельзя было опознать человека.
+/* ── Choosing audio devices (Bluetooth included) ─────────────────────────────
+   Headphones connected to the system are visible to the browser as ordinary devices —
+   but the names appear only AFTER microphone permission: before that the browser
+   hands back empty labels, so that a person cannot be identified by their set of
+   devices.
 
-   Гарнитура Bluetooth — особый случай: когда с неё пишут микрофоном, система
-   переключает её в режим гарнитуры, и звук становится заметно хуже. Это не
-   поломка, а как устроен сам протокол; предупреждаем прямо в списке. */
+   A Bluetooth headset is a special case: when its microphone is used for recording,
+   the system switches it into headset mode and the sound becomes noticeably worse.
+   That is not a fault but how the protocol itself works; we warn about it right in
+   the list. */
 (function () {
   const KEY_IN = 'diary-audio-in', KEY_OUT = 'diary-audio-out';
   const get = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
@@ -11078,13 +11092,13 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
   window.diaryAudio = {
     inputId: () => get(KEY_IN),
     outputId: () => get(KEY_OUT),
-    // ограничения для getUserMedia с учётом выбранного микрофона
+    // getUserMedia constraints that account for the chosen microphone
     constraints: () => {
       const id = get(KEY_IN);
       const base = { channelCount: 1, echoCancellation: true, noiseSuppression: true };
       return { audio: id ? Object.assign({ deviceId: { exact: id } }, base) : base };
     },
-    // направить звук в выбранные наушники
+    // steer the sound into the chosen headphones
     route: async (el) => {
       const id = get(KEY_OUT);
       if (!id || !el || typeof el.setSinkId !== 'function') return;
@@ -11134,10 +11148,10 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
     if (mic) mic.addEventListener('change', () => set(KEY_IN, mic.value));
     if (out) out.addEventListener('change', async () => {
       set(KEY_OUT, out.value);
-      // контекст создаётся с устройством один раз — закрываем, чтобы следующий
-      // звук пошёл уже в новые наушники без перезагрузки страницы
+      // the context is created with a device once — close it so the next sound goes
+      // into the new headphones without reloading the page
       try { if (window.audioCtx) { window.audioCtx.close(); window.audioCtx = null; } } catch (e) {}
-      // короткий сигнал в выбранное устройство: слышно, туда ли поехало
+      // a short tone into the chosen device: you can hear whether it went there
       try {
         const a = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=');
         await window.diaryAudio.route(a);
@@ -11171,12 +11185,12 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
 
 
 <script>
-/* ── Опросник о неочевидных связях ───────────────────────────────────────────
-   Память копит факты по одному, и через полгода это груда несвязанных записей.
-   Дневник изредка замечает пары, которые МОГУТ быть связаны, и спрашивает.
-   Связь подтверждает человек: автоматические рёбра — это придуманные связи,
-   которые потом становятся «фактами». Ответ «нет» тоже ценен — второй раз про
-   эту пару не спросят. */
+/* ── The questionnaire about non-obvious connections ─────────────────────────
+   Memory accumulates facts one at a time, and half a year later it is a heap of
+   unconnected entries. Now and then the diary notices pairs that MIGHT be connected,
+   and asks. A human confirms the link: automatic edges are invented connections that
+   later become "facts". A "no" is valuable too — the same pair is not asked about
+   twice. */
 (function () {
   let asking = false;
 
@@ -11226,7 +11240,7 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
 
   async function maybeAsk() {
     if (asking || document.hidden) return;
-    // только в блокноте: посреди живого разговора вопрос был бы помехой
+    // in the notebook only: in the middle of a live conversation the question would intrude
     const screen = document.querySelector('#notebookScreen');
     if (screen && screen.offsetParent === null) return;
     try {
@@ -11243,12 +11257,12 @@ Never invent button names, URLs or prices. If unsure, say so and describe what t
 </script>
 
 <script>
-/* ── Первый запуск: живой помощник по настройке ──────────────────────────────
-   Помощник работает на отдельном ключе, вшитом в сборку. Ключ виден любому, кто
-   откроет файл — он одноразовый, только для настройки, на бесплатном тарифе.
-   Если он не работает (отозван, кончилась квота, нет сети) — диалог молча
-   заменяется обычной инструкцией: человек не должен остаться перед пустым
-   экраном в первую же минуту. */
+/* ── First launch: a live setup assistant ────────────────────────────────────
+   The assistant runs on a separate key baked into the build. The key is visible to
+   anyone who opens the file — it is disposable, for setup only, on the free tier.
+   If it does not work (revoked, out of quota, no network) the dialogue is quietly
+   replaced by the plain instructions: nobody should be left facing an empty screen in
+   their very first minute. */
 (function () {
   const ONBOARDING_KEY = "PASTE_ONBOARDING_KEY_HERE";   // ← подставить перед сборкой
   const MODEL = "gemini-3.8-flash";
@@ -11338,7 +11352,7 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
   }
 
   async function boot() {
-    // уже настроено на этой машине — онбординг не показываем
+    // already set up on this machine — do not show onboarding
     try {
       const st = await fetch('/api/settings').then(r => r.json());
       const local = localStorage.getItem('diary-gemini-api-key');
@@ -11399,10 +11413,10 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
 </script>
 
 <script>
-/* ── Отчёт о неполадках ──────────────────────────────────────────────────────
-   Человека на другой машине не расспросишь по переписке: он видит молчащую
-   кнопку, а причина лежит тремя слоями ниже. Отчёт собирает факты о
-   работоспособности — и НИЧЕГО из содержимого дневника. */
+/* ── The trouble report ──────────────────────────────────────────────────────
+   You cannot interrogate a person on another machine over chat: they see a button
+   that does nothing, and the cause sits three layers below. The report gathers facts
+   about whether things work — and NOTHING of the diary's contents. */
 (function () {
   const errors = [];
   window.addEventListener('error', e =>
@@ -11469,9 +11483,9 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
 </script>
 
 <script>
-/* Кнопка «постучаться». Появляется, только если в сборке задан канал доставки —
-   иначе обещали бы то, чего нет. Человек перед отправкой видит ровно тот текст,
-   который улетит. */
+/* The "knock on the door" button. It appears only if a delivery channel is set in
+   the build — otherwise we would be promising something that does not exist. Before
+   sending, the person sees exactly the text that will leave. */
 (function () {
   document.addEventListener('DOMContentLoaded', async () => {
     const send = document.getElementById('diagSendBtn');
@@ -11519,9 +11533,9 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
 </script>
 
 <script>
-/* ── Сессия поддержки (по кнопке человека) ───────────────────────────────────
-   Открывается только тут и гаснет через час. Помогающий может запускать проверки
-   работоспособности — не дневник. Каждая проверка видна человеку в логе ниже. */
+/* ── A support session (opened by the person's own button) ───────────────────
+   It opens only here and dies after an hour. Whoever is helping can run health
+   checks — not the diary. Every check is visible to the person in the log below. */
 (function () {
   let timer = null;
 
@@ -11532,7 +11546,7 @@ Never invent button names, URLs or prices. If unsure, say so and say what to loo
     const log = document.getElementById('supLog');
     if (!btn) return;
     if (!st.configured) {
-      // канал в сборке не задан — прятать нечего показывать
+      // no channel is set in this build — there is nothing to show, so nothing to hide
       document.getElementById('sectionSupport').style.display = 'none';
       return;
     }

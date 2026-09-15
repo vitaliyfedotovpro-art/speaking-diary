@@ -1,4 +1,4 @@
-# Дневник пользователя — личные данные, в репозиторий не попадают никогда
+# The user's diary — personal data, never goes into the repository
 .diary/
 *.hsam.json
 journal.jsonl
@@ -6,28 +6,28 @@ links.jsonl
 attachments/
 last_voice.wav
 
-# Ключи
+# Keys
 key
 groq_key
 .env
 *.key
 
-# Сборка
+# Build artefacts
 build/
 dist/
 *.spec.bak
 __pycache__/
 *.pyc
 
-# Библиотека движка собирается в CI под нужную платформу
+# The engine library is built in CI for the right platform
 diary/lib/*.dylib
 diary/lib/*.so
 diary/lib/*.dll
 
-# Локальное
+# Local
 .DS_Store
 *.log
 
-# Заметки по дизайну и задания содержат сведения о людях, для которых это делалось.
-# Для сборки они не нужны и в репозиторий не идут — лежат локально.
+# Design notes and task briefs contain details about the people this was made for.
+# They are not needed for the build and do not go into the repository — they stay local.
 docs/

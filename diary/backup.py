@@ -1,16 +1,16 @@
-"""Резервные копии дневника.
+"""Backups of the diary.
 
-Дневник — это два файла: снимок памяти HSAM и журнал разговоров. Оба текстовые,
-оба маленькие (тысяча записей ≈ единицы мегабайт), поэтому копия делается просто
-и целиком, без хитростей с инкрементами.
+The diary is two files: the HSAM memory snapshot and the journal of conversations.
+Both are text, both are small (a thousand entries ≈ a few megabytes), so a copy is
+made simply and whole, without incremental cleverness.
 
-Куда: любая папка на диске. Внешний SSD — обычная папка в /Volumes (macOS) или на
-букве диска (Windows). Облако — папка синхронизации, которую уже держит iCloud,
-Dropbox или Google Drive: писать в неё файлом надёжнее, чем ходить в чужое API,
-и не требует ни ключей, ни доверия к ещё одному сервису.
+Where to: any folder on disk. An external SSD is an ordinary folder under /Volumes
+(macOS) or on a drive letter (Windows). The cloud is a sync folder that iCloud,
+Dropbox or Google Drive already keeps: writing a file into it is more reliable than
+calling somebody's API, and needs neither keys nor trust in one more service.
 
-⚠️ Копия — обычный файл с личными записями. Шифрования здесь нет: если папка
-облачная, содержимое увидит тот, у кого доступ к облаку.
+⚠️ A backup is an ordinary file with personal entries. There is no encryption here:
+if the folder is in the cloud, whoever has access to the cloud sees the contents.
 """
 from __future__ import annotations
 
@@ -23,11 +23,11 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-KEEP = 20          # сколько копий храним; старые удаляются сами
+KEEP = 20          # how many copies to keep; older ones delete themselves
 
 
 def _candidates() -> list[dict]:
-    """Куда предложить писать — только то, что реально существует на машине."""
+    """Where to offer writing — only what actually exists on this machine."""
     home = Path.home()
     out: list[dict] = []
     sysname = platform.system()
@@ -54,7 +54,7 @@ def _candidates() -> list[dict]:
 
     for label, p in clouds:
         if p.exists():
-            # Google Drive на маке лежит внутри CloudStorage отдельной папкой
+            # on macOS Google Drive lives inside CloudStorage as its own folder
             if p.name == "CloudStorage":
                 for sub in p.glob("GoogleDrive-*"):
                     out.append({"kind": "cloud", "label": f"Google Drive · {sub.name.split('-')[-1]}",
@@ -72,7 +72,7 @@ def targets() -> list[dict]:
 
 
 def make(src_dir: Path, dest_dir: str | Path) -> dict:
-    """Одна копия: zip с датой в имени. Возвращает, что получилось."""
+    """One copy: a zip with the date in its name. Returns what came of it."""
     src_dir = Path(src_dir)
     dest = Path(os.path.expanduser(str(dest_dir)))
     try:
@@ -98,7 +98,7 @@ def make(src_dir: Path, dest_dir: str | Path) -> dict:
                        "journal.jsonl   — conversations by day\n\n"
                        "Restore: put both files back into the diary folder and restart.\n"
                        "NOT ENCRYPTED — treat this file as the diary itself.\n")
-        tmp.replace(dest / name)              # атомарно: обрыв не оставит битый архив
+        tmp.replace(dest / name)              # atomic: an interruption leaves no broken archive
     except Exception as e:
         try: tmp.unlink()
         except Exception: pass
@@ -128,7 +128,7 @@ def last(dest_dir: str | Path) -> dict | None:
 
 
 def restore(zip_path: str | Path, dest_dir: Path) -> dict:
-    """Вернуть дневник из копии. Текущие файлы отодвигаются, а не затираются."""
+    """Bring the diary back from a copy. Current files are moved aside, not overwritten."""
     z = Path(os.path.expanduser(str(zip_path)))
     dest_dir = Path(dest_dir)
     if not z.exists():

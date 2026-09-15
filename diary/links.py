@@ -1,17 +1,17 @@
-"""Связи между фактами и опросник, который их выясняет.
+"""Connections between facts, and the questionnaire that finds them.
 
-Зачем. Память копит факты по одному, и через полгода это груда несвязанных
-записей: «поссорился с братом», «взял подработку», «плохо сплю» — каждая сама по
-себе, а вместе они история. Векторный поиск таких связей не найдёт: он ищет
-похожее, а связанное часто НЕ похоже.
+Why. Memory accumulates facts one at a time, and half a year later it is a heap of
+unconnected entries: "fell out with my brother", "took extra work", "sleeping badly"
+— each on its own, yet together they are a story. Vector search will not find such
+links: it looks for the similar, and the connected is often NOT similar.
 
-Автоматически строить рёбра нельзя — модель напридумывает связей, которых нет,
-и они станут «фактами». Поэтому связь подтверждает человек: дневник замечает
-пары, которые МОГУТ быть связаны, и спрашивает. Ответ «нет» тоже ценен —
-второй раз про эту пару не спросят.
+Building edges automatically is not an option — the model would invent connections
+that do not exist, and they would become "facts". So a human confirms the link: the
+diary notices pairs that MIGHT be connected, and asks. A "no" is valuable too — the
+same pair is not asked about twice.
 
-⚠️ C-ABI движка умеет только узлы, рёбра снаружи не добавить. Поэтому связи
-живут своим файлом рядом со снимком и подмешиваются при recall.
+⚠️ The engine's C-ABI only knows nodes; edges cannot be added from outside. So links
+live in their own file next to the snapshot and are mixed in during recall.
 """
 from __future__ import annotations
 
@@ -21,12 +21,13 @@ import time
 from pathlib import Path
 from threading import Lock
 
-# Кандидаты ищем в СРЕДНЕЙ зоне похожести: слишком близкие пары связаны очевидно
-# («записался к врачу» / «сходил к врачу») — спрашивать про них глупо. Слишком
-# далёкие не связаны никак. Интересное лежит между.
-NEAR = 0.72     # выше — очевидно, не спрашиваем
-FAR = 0.38      # ниже — вряд ли связано
-ASK_EVERY = 6   # не чаще, чем раз в столько ходов: опросник не должен надоедать
+# Candidates are looked for in the MIDDLE band of similarity: pairs that are too close
+# are connected obviously ("booked a doctor" / "went to the doctor") — asking about
+# them is silly. Pairs too far apart are not connected at all. The interesting ones
+# lie in between.
+NEAR = 0.72     # above this it is obvious, we do not ask
+FAR = 0.38      # below this a connection is unlikely
+ASK_EVERY = 6   # no more often than once in this many turns: the questionnaire must not nag
 
 
 class Links:
@@ -54,7 +55,7 @@ class Links:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     def asked_pairs(self) -> set[tuple[str, str]]:
-        """Про что уже спрашивали — включая ответы «не связано»."""
+        """What has already been asked about — including the answers "not connected"."""
         return {tuple(sorted((r["a"], r["b"]))) for r in self._rows()}
 
     def links_of(self, node_id: str) -> list[dict]:
@@ -67,11 +68,11 @@ class Links:
                       "note": note.strip()[:300], "a_text": a_text[:200],
                       "b_text": b_text[:200], "ts": time.time()})
 
-    # ── поиск пары, о которой стоит спросить ──────────────────────────────
+    # ── finding a pair worth asking about ─────────────────────────────────
     def candidate(self, nodes: list[dict], vectors: dict[str, list[float]]) -> dict | None:
-        """Пара фактов из средней зоны похожести, о которой ещё не спрашивали.
+        """A pair of facts from the middle band of similarity, not yet asked about.
 
-        nodes: [{id, content, ...}], vectors: id → вектор (нормированный).
+        nodes: [{id, content, ...}], vectors: id → vector (normalised).
         """
         import numpy as np
 
@@ -94,8 +95,8 @@ class Links:
                 pool.append((s, ids[i], ids[j]))
         if not pool:
             return None
-        # ближе к верхней границе — вероятнее осмысленная связь, но берём с разбросом,
-        # чтобы опросник не долбил одну и ту же тему
+        # closer to the upper bound means a meaningful link is likelier, but we pick
+        # with some spread so the questionnaire does not hammer the same theme
         pool.sort(key=lambda t: -t[0])
         s, a, b = random.choice(pool[:max(3, len(pool) // 4)])
         return {"a": a, "b": b, "similarity": round(s, 3),

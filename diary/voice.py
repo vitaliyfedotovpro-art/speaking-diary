@@ -1,11 +1,12 @@
-"""Realtime-голос: Gemini Live API как посредник между микрофоном и памятью.
+"""Realtime voice: the Gemini Live API as a go-between for the microphone and memory.
 
-Почему прокси, а не прямое соединение из браузера: ключ остаётся на машине,
-в страницу он не попадает вообще. Заодно через прокси проходят вызовы
-инструментов — модель сама решает, когда заглянуть в дневник.
+Why a proxy rather than a direct connection from the browser: the key stays on the
+machine and never reaches the page at all. Tool calls pass through the proxy too —
+the model decides for itself when to look into the diary.
 
-Поток: браузер шлёт PCM 16 кГц → мы в Live API → оттуда PCM 24 кГц обратно.
-Модель говорит сразу голосом, без промежуточного текста, и её можно перебить.
+The flow: the browser sends PCM at 16 kHz → we pass it to the Live API → PCM at
+24 kHz comes back. The model speaks straight away, with no intermediate text, and it
+can be interrupted.
 """
 from __future__ import annotations
 
@@ -26,10 +27,11 @@ VOICE = os.environ.get("DIARY_LIVE_VOICE", "Kore")
 LIVE_URL = ("wss://generativelanguage.googleapis.com/ws/"
             "google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent")
 
-# Характер у голоса и у текста ОДИН — берётся из chat.SYSTEM. Раньше здесь жил
-# свой куцый промпт («personal speaking diary»), и живой режим вёл себя иначе:
-# правка про свободу тем доехала до текста и не доехала до голоса, отчего вслух
-# собеседница возвращала человека «к его жизни» вместо разговора о чём угодно.
+# Voice and text share ONE character — it is taken from chat.SYSTEM. There used to be
+# a stunted prompt of its own here ("personal speaking diary"), and the live mode
+# behaved differently because of it: the edit about freedom of topics reached the text
+# path and never reached the voice, so out loud she kept steering the person "back to
+# their own life" instead of talking about anything at all.
 SPOKEN = """
 
 ЭТО РАЗГОВОР ВСЛУХ. Короткие фразы, как в живой речи: без списков, без разметки,
@@ -73,32 +75,35 @@ TOOLS = [{"functionDeclarations": [
 
 
 def _digest(mem: Memory, limit: int = 60) -> str:
-    """Что дневник знает о человеке — ДО первого слова.
+    """What the diary knows about the person — BEFORE the first word.
 
-    Текстовый режим кладёт найденное в промпт на каждом ходу, живой не клал ничего:
-    модель узнавала о человеке, только если сама догадается позвать recall_diary.
-    Отсюда и «собеседник без контекста». Поиском тут не возьмёшь — запроса ещё нет,
-    разговор не начался, — поэтому берём снимок памяти и самое важное из него.
+    The text mode puts what it found into the prompt on every turn; the live mode put
+    in nothing: the model learned about the person only if it thought to call
+    recall_diary itself. Hence "an interlocutor with no context". Search will not do
+    here — there is no query yet, the conversation has not started — so we take the
+    memory snapshot and the most important of it.
     """
     try:
         nodes, _ = mem.nodes_with_vectors()
     except Exception:
         return ""
-    # 🔴 Карантин самоописаний движок держит на ПОИСКЕ, а здесь мы читаем снимок
-    # напрямую, в обход поиска — значит отсекаем сами. В снимке провенанс лежит
-    # строкой, и сравнение с числом молча не отсекало бы ничего.
+    # 🔴 The engine enforces the quarantine of self-descriptions inside SEARCH, and
+    # here we read the snapshot directly, bypassing search — so we must cut them out
+    # ourselves. In the snapshot provenance is a string, and comparing it with a
+    # number would silently cut out nothing.
     nodes = [n for n in nodes if source_of(n) != SRC_SELF]
     nodes.sort(key=lambda n: float(n.get("importance") or 0), reverse=True)
     return format_for_prompt(nodes[:limit])
 
 
 def _recent(jr, n: int = 10) -> str:
-    """Хвост последнего разговора: человек продолжает мысль, а не начинает с нуля."""
+    """The tail of the last conversation: a person continues a thought rather than
+    starting from nothing."""
     try:
         days = jr.days() if jr is not None else []
     except Exception:
         return ""
-    for day in days:                       # дни уже отсортированы от новых к старым
+    for day in days:                       # days are already sorted newest first
         for s in reversed(day.get("sessions") or []):
             turns = (s.get("turns") or [])[-n:]
             if not turns:
@@ -174,10 +179,11 @@ async def _handle_tool(mem: Memory, call: dict, client=None) -> dict:
 
 
 async def bridge(client, mem: Memory, jr=None) -> None:
-    """Один голосовой сеанс: браузер ↔ Live API, с памятью посередине.
+    """One voice session: browser ↔ Live API, with memory in between.
 
-    jr — журнал: живой разговор должен попадать в блокнот так же, как рация,
-    иначе половина сказанного исчезает и книга врёт о том, что было."""
+    `jr` is the journal: a live conversation must reach the notebook just as the
+    walkie-talkie does, otherwise half of what was said disappears and the book lies
+    about what happened."""
     key = os.environ.get("GEMINI_API_KEY", "")
     if not key:
         await client.send(json.dumps({"type": "error", "error": "no GEMINI_API_KEY"}))
@@ -190,8 +196,9 @@ async def bridge(client, mem: Memory, jr=None) -> None:
         return
 
     async with up:
-        # Первым сообщением браузер присылает выбранные в настройках голос и модель.
-        # Ждём его недолго: если страница молчит — поднимаем сессию на значениях по умолчанию.
+        # The browser sends the voice and model chosen in settings as its first message.
+        # We do not wait long for it: if the page stays quiet, the session comes up on
+        # the defaults.
         voice, model = None, None
         try:
             first = await asyncio.wait_for(client.recv(), timeout=1.5)
@@ -208,13 +215,13 @@ async def bridge(client, mem: Memory, jr=None) -> None:
 
         async def to_gemini():
             async for raw in client:
-                if isinstance(raw, bytes):          # сырой звук с микрофона
+                if isinstance(raw, bytes):          # raw sound from the microphone
                     await up.send(json.dumps({"realtimeInput": {"mediaChunks": [
                         {"mimeType": "audio/pcm;rate=16000",
                          "data": base64.b64encode(raw).decode()}]}}))
                 else:
                     m = json.loads(raw)
-                    if m.get("type") == "text":     # можно и написать вместо речи
+                    if m.get("type") == "text":     # writing instead of speaking also works
                         await up.send(json.dumps({"clientContent": {
                             "turns": [{"role": "user", "parts": [{"text": m.get("text", "")}]}],
                             "turnComplete": True}}))
@@ -222,11 +229,13 @@ async def bridge(client, mem: Memory, jr=None) -> None:
         said: dict[str, list[str]] = {"you": [], "diary": []}
 
         def flush_turn() -> None:
-            """Реплики копятся по кусочкам — в журнал пишем целыми, в конце хода.
+            """Turns arrive in pieces — we write them into the journal whole, at the
+            end of a turn.
 
-            Разбор на факты здесь НЕ делаем. Он идёт раз в сессию общим проходом
-            (server._extract_sweep) по тому же журналу: на каждом ходу он съедал
-            по запросу к модели, а бесплатный тариф даёт 20 в сутки на модель.
+            Facts are NOT distilled here. That happens once per session in a shared
+            pass (server._extract_sweep) over the same journal: doing it on every turn
+            cost one request to the model each time, and the free tier allows 20 a day
+            per model.
             """
             if jr is None:
                 return
@@ -255,7 +264,7 @@ async def bridge(client, mem: Memory, jr=None) -> None:
                 for part in (sc.get("modelTurn") or {}).get("parts", []) or []:
                     inline = part.get("inlineData") or {}
                     if inline.get("data"):
-                        await client.send(base64.b64decode(inline["data"]))   # звук ответа
+                        await client.send(base64.b64decode(inline["data"]))   # the sound of the answer
                     if part.get("text"):
                         await client.send(json.dumps({"type": "text", "text": part["text"]}))
                 for key_, tag in (("inputTranscription", "you"), ("outputTranscription", "diary")):
@@ -269,7 +278,7 @@ async def bridge(client, mem: Memory, jr=None) -> None:
 
         done, pending = await asyncio.wait(
             [asyncio.create_task(to_gemini()), asyncio.create_task(from_gemini())],
-            return_when=asyncio.FIRST_COMPLETED)     # не FIRST_EXCEPTION: закрытие сокета им не ловится
+            return_when=asyncio.FIRST_COMPLETED)     # not FIRST_EXCEPTION: it does not catch a socket close
         for t in pending:
             t.cancel()
 

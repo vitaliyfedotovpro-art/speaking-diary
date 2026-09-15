@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Пульт поддержки — для тебя, не для Адди.
+"""Support console — for whoever installed the diary, not for the person using it.
 
-Адди открыл сессию и назвал код. Ты вводишь код здесь и гоняешь проверки на его
-машине: они уходят в канал, приложение отвечает, ответ печатается тут.
+The person opens a session and reads out a short code. You type the code here and
+run checks on their machine: the request goes into the channel, the application
+answers, and the answer is printed here.
 
-Выполняются только проверки из списка — произвольных команд нет ни на его
-стороне, ни на твоей. Дневник недоступен.
+Only the checks from the list are run — there are no arbitrary commands on their
+side or on yours. The diary itself is not reachable.
 
-  python3 support_console.py <код>
+  python3 support_console.py <code>
 """
 import sys, time, httpx
 
-CHANNEL = "PASTE_SUPPORT_CHANNEL_URL"   # тот же адрес, что зашит в сборку
+CHANNEL = "PASTE_SUPPORT_CHANNEL_URL"   # the same address that is baked into the build
 
 CHECKS = ["status", "diagnose", "net", "engine", "files", "logtail", "versions"]
 
@@ -30,7 +31,7 @@ def main():
             break
         if c not in CHECKS:
             print("нет такой. доступно:", ", ".join(CHECKS)); continue
-        # положить задание в канал и ждать ответ
+        # put the task into the channel and wait for the answer
         httpx.post(f"{url}/task", json={"code": code, "check": c}, timeout=20)
         print("… ждём машину человека")
         for _ in range(20):

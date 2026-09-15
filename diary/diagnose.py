@@ -1,11 +1,11 @@
-"""Отчёт о состоянии дневника — чтобы «у меня не работает» стало разбираемым.
+"""A report on the state of the diary — so that "it doesn't work" becomes debuggable.
 
-Человеку на другой машине не объяснить по переписке, что именно сломалось: он
-видит молчащую кнопку, а причина лежит на три слоя ниже. Отчёт собирает всё, что
-нужно для разбора, и НИЧЕГО из того, что нельзя показывать.
+You cannot explain over chat what exactly broke on someone else's machine: they see
+a button that does nothing, and the cause sits three layers below. This report
+gathers everything needed to work it out, and NOTHING that must not be shown.
 
-⛔ Что сюда не попадает никогда: сами ключи, тексты записей, содержимое разговоров,
-имена файлов вложений. Только факты о работоспособности.
+⛔ What never goes in here: the keys themselves, the text of entries, the content of
+conversations, the names of attached files. Facts about whether things work, only.
 """
 from __future__ import annotations
 
@@ -79,8 +79,8 @@ def collect(home: Path, mem=None, journal=None, extra: dict | None = None) -> di
         "system": {"os": platform.system(), "release": platform.release(),
                    "machine": platform.machine()},
         "keys": {"gemini_present": bool(gem), "groq_present": bool(grq),
-                 # длина и первые символы помогают поймать обрезанный или
-                 # склеенный ключ, но сам ключ не раскрывают
+                 # the length and first characters help catch a truncated or
+                 # concatenated key without revealing the key itself
                  "gemini_len": len(gem), "gemini_prefix": gem[:4],
                  "groq_len": len(grq), "groq_prefix": grq[:4]},
         "gemini": _probe_gemini(gem),
@@ -94,7 +94,7 @@ def collect(home: Path, mem=None, journal=None, extra: dict | None = None) -> di
 
 
 def as_text(d: dict) -> str:
-    """Человекочитаемо: этот текст можно просто вставить в сообщение."""
+    """Human readable: this text can simply be pasted into a message."""
     g, q = d.get("gemini", {}), d.get("groq", {})
     k = d.get("keys", {})
     lines = [

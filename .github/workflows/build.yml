@@ -1,35 +1,35 @@
 name: build
 
-# Сборка идёт ЗДЕСЬ, а не на машине автора: ни PyInstaller, ни Rust не
-# кросс-компилируют — бинарник под каждую систему собирается на этой системе.
-# Тег `v*` собирает все три и складывает их в один релиз.
+# The builds happen HERE rather than on the author's machine: neither PyInstaller nor
+# Rust cross-compiles — a binary for each system is built on that system.
+# A `v*` tag builds all three and puts them into one release.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
 
-# Право создавать релиз и прикреплять к нему файлы
+# Permission to create a release and attach files to it
 permissions:
   contents: write
 
 jobs:
   build:
     strategy:
-      fail-fast: false        # macOS упал — Windows всё равно должен доехать
+      fail-fast: false        # if macOS fails, Windows must still get through
       matrix:
         include:
           - os: windows-latest
             asset: Diary.exe
             built: dist/Diary.exe
-          # macos-latest — это Apple Silicon. Для Intel добавить строку с macos-13
-          # и asset Diary-macos-x86_64.
+          # macos-latest is Apple Silicon. For Intel, add a row with macos-13 and
+          # the asset Diary-macos-x86_64.
           - os: macos-latest
             asset: Diary-macos-arm64
             built: dist/Diary
-          # Версия прибита, а не ubuntu-latest: бинарник тянет glibc той системы,
-          # где собран, и «latest» однажды молча сдвинет порог совместимости.
-          # 22.04 взять нельзя — GitHub начинает выводить его 17.09.2026 и снимает
-          # полностью к 17.04.2027. 24.04 = glibc 2.39.
+          # The version is pinned rather than ubuntu-latest: the binary carries the
+          # glibc of the system it was built on, and "latest" would silently move the
+          # compatibility floor one day. 22.04 cannot be used — GitHub begins retiring
+          # it on 17.09.2026 and drops it entirely by 17.04.2027. 24.04 means glibc 2.39.
           - os: ubuntu-24.04
             asset: Diary-linux-x86_64
             built: dist/Diary
@@ -40,22 +40,22 @@ jobs:
       - name: Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Забрать движок памяти
+      - name: Fetch the memory engine
         uses: actions/checkout@v4
         with:
           repository: vitaliyfedotovpro-art/astrum-hsam-embedded
           path: hsam
 
-      - name: Собрать HSAM динамической библиотекой
+      - name: Build HSAM as a dynamic library
         working-directory: hsam
         run: cargo rustc --release --crate-type cdylib
 
-      - name: Положить библиотеку рядом с кодом
+      - name: Put the library next to the code
         shell: bash
         run: |
           mkdir -p diary/lib
-          # Имя разное на каждой системе (.dll / .dylib / .so) — копируем по маске,
-          # чтобы не держать три ветки и не промахнуться мимо префикса lib.
+          # The name differs on every system (.dll / .dylib / .so) — copy by pattern
+          # so there is no need for three branches and no way to miss the lib prefix.
           found=0
           for f in hsam/target/release/*astrum_memory*.dll \
                    hsam/target/release/*astrum_memory*.dylib \
@@ -65,7 +65,7 @@ jobs:
             found=1
           done
           if [ "$found" != "1" ]; then
-            echo "библиотека движка не собралась:"; ls -la hsam/target/release/ | head -30
+            echo "the engine library did not build:"; ls -la hsam/target/release/ | head -30
             exit 1
           fi
           ls -la diary/lib/
@@ -74,20 +74,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Зависимости
+      - name: Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Сборка
+      - name: Build
         run: pyinstaller --clean --noconfirm diary.spec
 
-      - name: Проверить, что файл собрался, и дать ему имя платформы
+      - name: Check the file was built, and give it the platform's name
         shell: bash
         run: |
-          test -f "${{ matrix.built }}" || (echo "${{ matrix.built }} не собран"; ls -la dist/; exit 1)
+          test -f "${{ matrix.built }}" || (echo "${{ matrix.built }} was not built"; ls -la dist/; exit 1)
           mv "${{ matrix.built }}" "dist/${{ matrix.asset }}"
-          # На macOS и Linux бит запуска должен пережить путь до пользователя
+          # On macOS and Linux the executable bit has to survive the trip to the user
           chmod +x "dist/${{ matrix.asset }}" || true
           ls -la dist/
 
@@ -97,9 +97,9 @@ jobs:
           path: dist/${{ matrix.asset }}
           retention-days: 30
 
-      # Релиз — только на теге, чтобы ручные запуски не плодили пустых.
-      # Каждое задание прикладывает свой файл к одному и тому же релизу.
-      - name: Опубликовать релиз
+      # A release only on a tag, so manual runs do not breed empty ones.
+      # Each job attaches its own file to the same release.
+      - name: Publish the release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:

@@ -1,10 +1,10 @@
-"""Векторы через Gemini. Локальной модели нет намеренно: sentence-transformers
-тянет torch (328 МБ) плюс веса (458 МБ) — почти гигабайт ради того, чтобы
-превратить текст в числа. Раз ключ Gemini всё равно нужен для разговора,
-эмбеддинги берём там же.
+"""Vectors through Gemini. There is deliberately no local model: sentence-transformers
+drags in torch (328 MB) plus weights (458 MB) — almost a gigabyte just to turn text
+into numbers. Since a Gemini key is needed for the conversation anyway, the
+embeddings are taken from the same place.
 
-⚠️ Это значит, что текст записей уходит в Google. Пользователь предупреждается
-об этом на первом экране — не мелким шрифтом.
+⚠️ This means the text of the entries goes to Google. The user is warned about it on
+the first screen — not in fine print.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ import httpx
 MODEL = os.environ.get("DIARY_EMBED_MODEL", "gemini-embedding-2")
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{m}:embedContent"
 BATCH_URL = "https://generativelanguage.googleapis.com/v1beta/models/{m}:batchEmbedContents"
-DIM = 768          # усечение до 768: качество почти то же, памяти втрое меньше
+DIM = 768          # truncated to 768: nearly the same quality, three times less memory
 
 
 class EmbedError(RuntimeError):
@@ -40,7 +40,7 @@ def _post(url: str, body: dict, tries: int = 3) -> dict:
             if r.status_code == 200:
                 return r.json()
             last = f"HTTP {r.status_code}: {r.text[:200]}"
-            if r.status_code in (429, 500, 503):      # временное — ждём и повторяем
+            if r.status_code in (429, 500, 503):      # transient — wait and retry
                 time.sleep(2 * (i + 1))
                 continue
             break
@@ -53,12 +53,12 @@ def _post(url: str, body: dict, tries: int = 3) -> dict:
 def _norm(v: list[float]) -> np.ndarray:
     a = np.asarray(v, dtype=np.float32)
     n = np.linalg.norm(a)
-    return a / n if n else a          # нормируем сразу: косинус = скалярное произведение
+    return a / n if n else a          # normalise here: cosine becomes a dot product
 
 
 def embed(text: str, task: str = "RETRIEVAL_DOCUMENT") -> np.ndarray:
-    """task разный для записи и для запроса — Gemini использует его как подсказку,
-    и перепутать их значит просесть в качестве поиска на ровном месте."""
+    """The task differs for storing and for querying — Gemini uses it as a hint, and
+    mixing the two costs search quality for nothing."""
     body = {"content": {"parts": [{"text": (text or "")[:8000]}]},
             "taskType": task, "outputDimensionality": DIM}
     d = _post(URL, body)
@@ -71,7 +71,7 @@ def embed_query(text: str) -> np.ndarray:
 
 def embed_many(texts: list[str], task: str = "RETRIEVAL_DOCUMENT",
                chunk: int = 100) -> list[np.ndarray]:
-    """Пакетно — для первичной загрузки и переиндексации."""
+    """In batches — for the initial load and for reindexing."""
     out: list[np.ndarray] = []
     for i in range(0, len(texts), chunk):
         part = texts[i:i + chunk]

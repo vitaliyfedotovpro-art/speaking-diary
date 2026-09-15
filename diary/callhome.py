@@ -1,25 +1,27 @@
-"""Кнопка «постучаться»: отчёт уходит тому, кто это поставил.
+"""The "knock on the door" button: the report goes to whoever installed this.
 
-Зачем не почта и не GitHub: человеку с проблемой нельзя давать задание. Он жмёт
-одну кнопку, пишет строчку «что случилось» — и всё уходит само. Любая просьба
-«скопируйте файл и пришлите» теряет половину обращений.
+Why not email and not GitHub: you cannot hand a task to a person who already has a
+problem. They press one button, write a single line about what happened, and it
+leaves on its own. Any request to "copy a file and send it over" loses half the
+reports.
 
-Куда именно — задаётся при сборке через DIARY_REPORT_URL:
+Where exactly is set at build time through DIARY_REPORT_URL:
 
-  Discord    https://discord.com/api/webhooks/<id>/<token>   ← привычен где угодно
+  Discord    https://discord.com/api/webhooks/<id>/<token>   ← familiar anywhere
   Slack      https://hooks.slack.com/services/<...>
-  ntfy       https://ntfy.sh/<длинная-случайная-тема>          ← ничего не заводить
+  ntfy       https://ntfy.sh/<long-random-topic>              ← nothing to set up
   Telegram   https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<ID>
-  свой хук   любой URL, принимающий POST
+  own hook   any URL that accepts a POST
 
-Выбирая канал, помни: адрес виден тому, кто вскроет сборку. В Северной Америке
-ссылка на Telegram у многих вызывает подозрение сама по себе — Discord, Slack
-или ntfy не вызывают ни у кого.
+When choosing a channel, remember the address is visible to anyone who opens the
+build. In North America a Telegram link makes many people suspicious on its own —
+Discord, Slack and ntfy make nobody suspicious.
 
-⚠️ Адрес виден любому, кто вскроет сборку. Поэтому бот заводится ОТДЕЛЬНЫЙ, не
-рабочий: если адрес утечёт, худшее — спам в один чат, и канал меняется заменой
-строки. Ключи и содержимое дневника сюда не попадают никогда — уходит тот же
-отчёт, что человек видит на экране перед отправкой.
+⚠️ The address is visible to anyone who opens the build. So the bot must be a
+SEPARATE one, not a working account: if the address leaks, the worst case is spam
+in a single chat, and the channel is changed by replacing one string. Keys and
+diary content never reach this place — what leaves is the same report the person
+sees on screen before sending.
 """
 from __future__ import annotations
 
@@ -28,7 +30,7 @@ import platform
 
 import httpx
 
-MAX = 3800          # телеграм рвёт длинные сообщения; отчёт короче, но с запасом
+MAX = 3800          # Telegram cuts long messages; the report is shorter, with room to spare
 
 
 def target() -> str:
@@ -40,8 +42,8 @@ def configured() -> bool:
 
 
 def send(report_text: str, complaint: str = "", who: str = "") -> dict:
-    """→ {'ok': bool, 'why': str}. Ошибку возвращаем словами, а не кодом:
-    её увидит человек, а не разработчик."""
+    """→ {'ok': bool, 'why': str}. The error comes back in words, not as a code:
+    a person will read it, not a developer."""
     url = target()
     if not url:
         return {"ok": False, "why": "no report channel configured in this build"}
@@ -56,7 +58,7 @@ def send(report_text: str, complaint: str = "", who: str = "") -> dict:
 
     try:
         if "discord.com/api/webhooks" in url or "discordapp.com/api/webhooks" in url:
-            # Discord режет сообщения на 2000 символов и не любит пустые поля
+            # Discord caps messages at 2000 characters and dislikes empty fields
             r = httpx.post(url, timeout=30,
                            json={"content": f"```\n{body[:1900]}\n```"})
         elif "hooks.slack.com" in url:

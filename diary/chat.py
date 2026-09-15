@@ -1,14 +1,16 @@
-"""Разговор поверх дневника: gemini-3.8-flash + поиск по записям.
+"""Conversation on top of the diary: gemini-3.8-flash plus search over the entries.
 
-Два решения, взятые из чужого опыта, а не выдуманные здесь:
+Two decisions taken from other people's experience rather than invented here:
 
-· ЗАПИСЫВАЕТСЯ НЕ ВСЁ. Автозапись каждой реплики выглядит заманчиво и убивает
-  дневник: он забивается болтовнёй модели, и поиск начинает находить её же
-  пересказы вместо слов человека. Поэтому решение «стоит ли это помнить»
-  принимает ОТДЕЛЬНЫЙ тихий проход после ответа, и он отбирает факты, а не диалог.
+· NOT EVERYTHING IS WRITTEN DOWN. Recording every turn looks tempting and kills the
+  diary: it fills up with the model's own chatter, and search starts finding its
+  retellings instead of the person's words. So the decision "is this worth
+  remembering" is made by a SEPARATE quiet pass after the answer, and it picks out
+  facts, not dialogue.
 
-· ПАСПОРТ ИСТОЧНИКА. Слова человека и догадки модели помечаются по-разному,
-  иначе через месяц модель цитирует собственную выдумку как чужую биографию.
+· A PASSPORT FOR THE SOURCE. A person's words and a model's guesses are marked
+  differently, otherwise in a month the model quotes its own invention back as
+  somebody's biography.
 """
 from __future__ import annotations
 
@@ -22,11 +24,12 @@ from .memory import Memory
 from .hsam import SRC_USER, SRC_SELF
 
 CHAT_MODEL = os.environ.get("DIARY_CHAT_MODEL", "gemini-3.8-flash")
-# 🔴 Квота бесплатного тарифа считается НА МОДЕЛЬ и НА ПРОЕКТ: замер 13.09.2026
-# на живом ключе дал 5 запросов в минуту и 20 в сутки (quotaId ...PerDay...-FreeTier).
-# Поэтому служебные проходы уводим на СВОИ модели: у разговора, разбора и
-# заголовков получается по отдельному ведру вместо одного на троих. Это не обход
-# лимита, а его законное использование — вёдра у моделей разные по построению.
+# 🔴 Free-tier quota is counted PER MODEL and PER PROJECT: measured on a live key on
+# 13.09.2026 it gave 5 requests a minute and 20 a day (quotaId ...PerDay...-FreeTier).
+# So the background passes are moved onto THEIR OWN models: the conversation, the
+# distillation and the titles each get a separate bucket instead of one shared by
+# three. This is not a way around the limit but a legitimate use of it — the buckets
+# are separate by construction.
 EXTRACT_MODEL = os.environ.get("DIARY_EXTRACT_MODEL", "gemini-2.5-flash")
 TITLE_MODEL = os.environ.get("DIARY_TITLE_MODEL", "gemini-3.5-flash")
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent"
@@ -99,10 +102,10 @@ punctuation at the end, no words like conversation or discussion. Title only."""
 
 
 def title_for(dialog: str) -> str:
-    """Заголовок разговора для оглавления блокнота."""
+    """A title for the conversation, for the notebook's table of contents."""
     try:
-        # 200 не хватало: служебные поля ответа съедают бюджет, и заголовок
-        # приходил обрезанным до одного слова («First», «Putting»)
+        # 200 was not enough: the response's service fields eat the budget, and the
+        # title came back cut down to a single word ("First", "Putting")
         return _call([{"text": dialog}], TITLE_PROMPT, temperature=0.3,
                      max_tokens=500, think=False,
                      model=TITLE_MODEL).strip().strip('"').strip()[:90]
@@ -111,7 +114,8 @@ def title_for(dialog: str) -> str:
 
 
 def ask_link(a: str, b: str) -> str:
-    """Вопрос о возможной связи двух записей. Пустая строка — спрашивать не стоит."""
+    """A question about a possible connection between two entries. An empty string
+    means it is not worth asking."""
     from .links import QUESTION_PROMPT
     try:
         out = _call([{"text": QUESTION_PROMPT.format(a=a[:400], b=b[:400])}],
@@ -142,19 +146,19 @@ TOOLS = [{"functionDeclarations": [
 def _call(parts: list[dict], system: str, temperature: float = 0.7,
           max_tokens: int = 1200, mem=None, think: bool = True,
           model: str | None = None) -> str:
-    """Один ответ модели. Если дана память — модель может спросить её сама
-    через инструмент. Это единственный способ искать по РЕЧИ: текста запроса
-    у нас нет, расшифровка происходит уже внутри модели."""
+    """One answer from the model. If memory is given, the model can query it itself
+    through a tool. That is the only way to search by SPEECH: we do not have the text
+    of the query, the transcription happens inside the model."""
     contents = [{"role": "user", "parts": parts}]
-    for _ in range(3):                       # хватает на пару обращений к памяти
+    for _ in range(3):                       # enough for a couple of trips to memory
         body = {"contents": contents,
                 "systemInstruction": {"parts": [{"text": system}]},
                 "generationConfig": {"temperature": temperature,
                                      "maxOutputTokens": max_tokens}}
         if not think:
-            # 🔴 Модель думает ПЕРЕД ответом, и на короткой задаче размышление
-            # съедает весь лимит: заголовок в 40 токенов вернулся пустым, а
-            # thoughtsTokenCount был 36. Для служебных вызовов думать незачем.
+            # 🔴 The model thinks BEFORE answering, and on a short task the thinking
+            # eats the whole limit: a 40-token title came back empty while
+            # thoughtsTokenCount was 36. For background calls there is nothing to think about.
             body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
         if mem is not None:
             body["tools"] = TOOLS
@@ -183,10 +187,11 @@ def _call(parts: list[dict], system: str, temperature: float = 0.7,
 def reply(mem: Memory, text: str, history: list[dict] | None = None,
           audio: bytes | None = None, mime: str = "audio/wav",
           extra_parts: list[dict] | None = None) -> dict:
-    """Один ход. audio — сырой голос: gemini-3.8 принимает его напрямую,
-    отдельное распознавание не нужно."""
-    # По тексту ищем сами — быстрее. По РЕЧИ искать нечем: расшифровка живёт
-    # внутри модели, поэтому там она спрашивает память инструментом.
+    """One turn. `audio` is raw voice: gemini-3.8 takes it directly, no separate
+    transcription needed."""
+    # For text we search ourselves — it is faster. For SPEECH there is nothing to
+    # search with: the transcription lives inside the model, so there it queries
+    # memory through a tool.
     found = mem.recall(text, n=8) if text else []
     system = SYSTEM + _memory.format_for_prompt(found)
     try:
@@ -205,18 +210,18 @@ def reply(mem: Memory, text: str, history: list[dict] | None = None,
         parts.append({"inlineData": {"mimeType": mime,
                                      "data": base64.b64encode(audio).decode()}})
     if extra_parts:
-        parts += extra_parts            # картинка, PDF, аудио или текст страницы
+        parts += extra_parts            # an image, a PDF, audio, or the text of a page
     if text:
         parts.append({"text": text})
 
-    # с вложением модель тоже должна уметь спросить память: разговор про документ
-    # почти всегда цепляет то, что уже записано
+    # with an attachment the model must also be able to query memory: a conversation
+    # about a document almost always touches something already written down
     answer = _call(parts, system, mem=(mem if (audio or extra_parts) else None))
     return {"answer": answer, "used": found}
 
 
 def _save_facts(mem: Memory, raw: str, cap: int) -> list[str]:
-    """Разбор ответа модели в факты. Потолок — чтобы дневник не стал свалкой."""
+    """Turning the model's answer into facts. The cap keeps the diary from becoming a dump."""
     raw = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     try:
         facts = json.loads(raw)
@@ -230,7 +235,7 @@ def _save_facts(mem: Memory, raw: str, cap: int) -> list[str]:
         if len(f) < 8:
             continue
         try:
-            mem.remember(f, source=SRC_USER)  # факт О ЧЕЛОВЕКЕ — из его слов
+            mem.remember(f, source=SRC_USER)  # a fact ABOUT THE PERSON — from their words
             saved.append(f)
         except Exception:
             continue
@@ -238,8 +243,9 @@ def _save_facts(mem: Memory, raw: str, cap: int) -> list[str]:
 
 
 def remember(mem: Memory, user_text: str, answer: str) -> list[str]:
-    """Тихий проход по ОДНОМУ обмену. Оставлен для явных вызовов; обычный путь
-    разговора идёт через remember_session — по запросу на сессию, а не на ход."""
+    """The quiet pass over a SINGLE exchange. Kept for explicit calls; the ordinary
+    path of a conversation goes through remember_session — one request per session
+    rather than per turn."""
     dialog = f"ЧЕЛОВЕК: {user_text}\n\nТЫ: {answer}"
     try:
         raw = _call([{"text": dialog}], EXTRACT, temperature=0.0, max_tokens=600,
@@ -250,16 +256,16 @@ def remember(mem: Memory, user_text: str, answer: str) -> list[str]:
 
 
 def remember_session(mem: Memory, turns: list[dict]) -> list[str]:
-    """Разбор ЦЕЛОГО разговора одним вызовом.
+    """Distilling a WHOLE conversation in one call.
 
-    🔴 Раньше тихий проход шёл после каждого хода: типичный день это 56 ходов,
-    то есть 56 запросов, — а бесплатный тариф даёт 20 в сутки на модель (замер
-    13.09.2026). Память переставала пополняться к обеду, и молча: человек
-    продолжал говорить, дневник продолжал отвечать, факты уже не сохранялись.
-    Разбор раз в сессию — это 3-4 запроса в день, внутрь лимита с запасом.
+    🔴 The quiet pass used to run after every turn: a typical day is 56 turns, which
+    means 56 requests — while the free tier allows 20 a day per model (measured
+    13.09.2026). Memory stopped filling up by lunchtime, and silently: the person kept
+    talking, the diary kept answering, and the facts were no longer saved. Once per
+    session is 3-4 requests a day, inside the limit with room to spare.
 
-    Целый разговор вдобавок разбирается ЛУЧШЕ обмена: видно, чем кончилась
-    тема, начатая десять реплик назад, и не плодятся полу-факты из середины.
+    A whole conversation is also distilled BETTER than an exchange: you can see how a
+    topic started ten turns ago ended, and no half-facts are minted from the middle.
     """
     lines = []
     for t in turns:
@@ -274,4 +280,4 @@ def remember_session(mem: Memory, turns: list[dict]) -> list[str]:
                     think=False, model=EXTRACT_MODEL)
     except Exception:
         return []
-    return _save_facts(mem, raw, cap=12)      # на сессию потолок выше, чем на ход
+    return _save_facts(mem, raw, cap=12)      # per session the cap is higher than per turn
